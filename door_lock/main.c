@@ -15,13 +15,13 @@ int main(void) {
 	serial_init();
 
 	for(;;) {
-		serial_write("hello, world!");
-
 		OCR1A = 3999 + offset;
 		_delay_ms(5000);
 
 		OCR1A = 1999 - offset;
 		_delay_ms(5000);
+
+		serial_write_line("hello, world!");
 	}
 
 	return 0;
