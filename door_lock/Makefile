@@ -2,15 +2,16 @@ CC = avr-gcc
 MCU = atmega328p
 TARGET = app
 
-SRC = main.c
+SRC = main.c serial.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
 CFLAGS += -Os
-CFLAGS+= -Wall
-CFLAGS+= -mmcu=$(MCU)
-CFLAGS+= -DF_CPU=16000000UL
-CFLAGS+= -ffunction-sections -fdata-sections
+CFLAGS += -Wall
+CFLAGS += -mmcu=$(MCU)
+CFLAGS += -DBAUD=115200
+CFLAGS += -DF_CPU=16000000UL
+CFLAGS += -ffunction-sections -fdata-sections
 
 LDFLAGS = -mmcu=$(MCU)
 LDFLAGS += -Wl,--gc-sections

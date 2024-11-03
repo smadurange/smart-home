@@ -1,25 +1,25 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-int main(void) {
-	DDRB |= 1 << PINB1; // Set pin 9 on arduino to output
+#include "serial.h"
 
-	/* 1. Set Fast PWM mode 14: set WGM11, WGM12, WGM13 to 1 */
-	/* 3. Set pre-scaler of 8 */
-	/* 4. Set Fast PWM non-inverting mode */
+int main(void) {
+	// pin 9
+	DDRB |= 1 << PINB1;
 	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
 	TCCR1B |= (1 << WGM12) | (1 << WGM13) | (1 << CS11);
 
-	/* 2. Set ICR1 register: PWM period */
 	ICR1 = 39999;
-
-	/* Offset for correction */
 	int offset = 800;
 
-	/* 5. Set duty cycle */
-	while(1) {
+	serial_init();
+
+	for(;;) {
+		serial_write("hello, world!");
+
 		OCR1A = 3999 + offset;
 		_delay_ms(5000);
+
 		OCR1A = 1999 - offset;
 		_delay_ms(5000);
 	}
