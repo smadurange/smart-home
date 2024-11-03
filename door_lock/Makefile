@@ -1,6 +1,6 @@
 CC = avr-gcc
 MCU = atmega328p
-TARGET = blink
+TARGET = app
 
 SRC = main.c
 OBJ = $(SRC:.c=.o)
