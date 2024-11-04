@@ -28,26 +28,15 @@ static inline uint8_t is_btn_pressed(uint8_t btn)
 	return !((PIND >> btn) & 0x01);
 }
 
-static inline uint8_t debounce(uint8_t btn)
-{
-	if (is_btn_pressed(btn)) {
-		_delay_ms(1000);
-		if (is_btn_pressed(btn))
-			return 1;
-	}
-	
-	return 0;
-}
-
 int main(void) 
 {
 	servo_init();
 
 	for(;;) {
-		if (debounce(LOCK_BTN))
+		if (is_btn_pressed(LOCK_BTN))
 			OCR1A = PWM_MID;
 
-		if (debounce(UNLOCK_BTN))
+		if (is_btn_pressed(UNLOCK_BTN))
 			OCR1A = PWM_MIN;
 	}
 
