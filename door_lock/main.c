@@ -1,3 +1,4 @@
+#include <stddef.h>
 #include <avr/io.h>
 #include <util/delay.h>
 
@@ -7,27 +8,47 @@
 #define PWM_MID 3000
 #define PWM_MAX 5000
 
-int main(void) {
-	// pin 9
-	DDRB |= 1 << PINB1;
+#define SERVO_PIN  PB1
+#define LOCK_BTN   PD6
+#define UNLOCK_BTN PD7
+
+static inline void servo_init(void)
+{
+	DDRB |= 1 << SERVO_PIN;
 	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
 	TCCR1B |= (1 << WGM12) | (1 << WGM13) | (1 << CS11);
-
 	ICR1 = 40000;
 
-	serial_init();
+	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
+	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
+}
+
+static inline uint8_t is_btn_pressed(uint8_t btn)
+{
+	return !((PIND >> btn) & 0x01);
+}
+
+static inline uint8_t debounce(uint8_t btn)
+{
+	if (is_btn_pressed(btn)) {
+		_delay_ms(1000);
+		if (is_btn_pressed(btn))
+			return 1;
+	}
+	
+	return 0;
+}
+
+int main(void) 
+{
+	servo_init();
 
 	for(;;) {
-		OCR1A = PWM_MID;
-		_delay_ms(5000);
-		OCR1A = PWM_MIN;
-		_delay_ms(5000);
-		OCR1A = PWM_MID;
-		_delay_ms(5000);
-		OCR1A = PWM_MAX;
-		_delay_ms(5000);
+		if (debounce(LOCK_BTN))
+			OCR1A = PWM_MID;
 
-		serial_write_line("hello, world!");
+		if (debounce(UNLOCK_BTN))
+			OCR1A = PWM_MIN;
 	}
 
 	return 0;
