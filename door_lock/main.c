@@ -39,9 +39,9 @@ int main(void)
 
 ISR (INT0_vect)
 {
-	if ((PIND & (1 << LOCK_BTN)))
+	if (!((PIND >> LOCK_BTN) & 0x01))
 		OCR1A = PWM_MID;
 
-	if ((PIND & (1 << UNLOCK_BTN)))
+	if (!((PIND >> UNLOCK_BTN) & 0x01))
 		OCR1A = PWM_MIN;
 }
