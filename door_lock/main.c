@@ -2,7 +2,6 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 
 #define PWM_MIN 1200
 #define PWM_MID 3000
@@ -24,10 +23,10 @@ static inline void servo_init(void)
 	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
 }
 
-static inline void int0_init(void)
+static inline void pcint2_init(void)
 {
-	EIMSK |= (1 << INT0);
-	EICRA |= (1 << ISC00);
+	PCICR |= (1 << PCIE2);
+	PCMSK2 |= ((1 << PCINT22) | (1 << PCINT23));
 }
 
 static inline uint8_t is_btn_pressed(uint8_t btn)
@@ -38,7 +37,7 @@ static inline uint8_t is_btn_pressed(uint8_t btn)
 int main(void) 
 {
 	servo_init();
-	int0_init();
+	pcint2_init();
 
 	sei();
 
@@ -48,7 +47,7 @@ int main(void)
 	return 0;
 }
 
-ISR(INT0_vect)
+ISR(PCINT2_vect)
 {
 	if (is_btn_pressed(LOCK_BTN))
 		OCR1A = PWM_MID;
