@@ -27,7 +27,7 @@ int main(void)
 	servo_init();
 
 	EICRA |= (1 << ISC00);
-    EIMSK |= (1 << INT0);
+	EIMSK |= (1 << INT0);
 
 	sei();
 
