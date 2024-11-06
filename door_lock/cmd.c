@@ -23,7 +23,8 @@ int is_ulock_cmd(const char *s)
 
 	xor(s, buf, XORLEN);
 	buf[XORLEN] = 0;
-	return !strcmp(ULOCK_CMD, buf);
+
+	return strcmp(ULOCK_CMD, buf) == 0;
 }
 
 char * get_encrypted_ulock_cmd(void)
