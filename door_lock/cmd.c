@@ -28,15 +28,15 @@ int is_valid_cmd(const char *s, enum command c)
 	buf[XORLEN] = 0;
 
 	switch (c) {
-		case DOOR_LOCK:
-			rc = strcmp(LOCK_CMD, buf) == 0;
-			break;
-		case DOOR_UNLOCK:
-			rc = strcmp(UNLOCK_CMD, buf) == 0;
-			break;
-		default:
-			rc = 0;
-			break;
+	case DOOR_LOCK:
+		rc = strcmp(LOCK_CMD, buf) == 0;
+		break;
+	case DOOR_UNLOCK:
+		rc = strcmp(UNLOCK_CMD, buf) == 0;
+		break;
+	default:
+		rc = 0;
+		break;
 	}
 
 	return rc;
@@ -45,15 +45,15 @@ int is_valid_cmd(const char *s, enum command c)
 char * get_cmd_hash(enum command c)
 {
 	switch (c) {
-		case DOOR_LOCK:
-			xor(LOCK_CMD, cmd, XORLEN);
-			break;
-		case DOOR_UNLOCK:
-			xor(UNLOCK_CMD, cmd, XORLEN);
-			break;
-		default:
-			cmd[0] = 0;
-			break;
+	case DOOR_LOCK:
+		xor(LOCK_CMD, cmd, XORLEN);
+		break;
+	case DOOR_UNLOCK:
+		xor(UNLOCK_CMD, cmd, XORLEN);
+		break;
+	default:
+		cmd[0] = 0;
+		break;
 	} 
 
 	return cmd;
