@@ -40,19 +40,18 @@ static inline uint8_t is_btn_pressed(uint8_t btn)
 
 int main(void) 
 {
-	char *ulock_cmd;
+	char *cmd;
 
 	servo_init();
 	pcint2_init();
-
 	serial_init();
 
 	sei();
 
 	for(;;) {
-		ulock_cmd = get_encrypted_ulock_cmd();
-		
-		if (is_ulock_cmd(ulock_cmd))
+		cmd = get_cmd_hash(DOOR_UNLOCK);
+
+		if (is_valid_cmd(cmd, DOOR_UNLOCK))
 			serial_write_line("unlock door");
 		else
 			serial_write_line("do not unlock door");

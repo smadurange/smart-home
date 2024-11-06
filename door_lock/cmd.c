@@ -3,11 +3,13 @@
 
 #include "cmd.h"
 
-#define XORLEN    32
-#define KEY       "dM>}jdb,6gsnC$J^K 8(I5vyPemPs%;K"
-#define ULOCK_CMD "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
+#define XORLEN 32
 
-static char ulock_crypt_cmd[XORLEN];
+#define KEY        "dM>}jdb,6gsnC$J^K 8(I5vyPemPs%;K"
+#define LOCK_CMD   "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
+#define UNLOCK_CMD "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
+
+static char cmd[XORLEN];
 
 static inline void xor(const char *s, char *d, uint8_t n)
 {
@@ -17,18 +19,42 @@ static inline void xor(const char *s, char *d, uint8_t n)
 		d[i] = s[i] ^ KEY[i];
 }
 
-int is_ulock_cmd(const char *s)
+int is_valid_cmd(const char *s, enum command c)
 {
+	int rc;
 	char buf[XORLEN + 1];
 
 	xor(s, buf, XORLEN);
 	buf[XORLEN] = 0;
 
-	return strcmp(ULOCK_CMD, buf) == 0;
+	switch (c) {
+		case DOOR_LOCK:
+			rc = strcmp(LOCK_CMD, buf) == 0;
+			break;
+		case DOOR_UNLOCK:
+			rc = strcmp(UNLOCK_CMD, buf) == 0;
+			break;
+		default:
+			rc = 0;
+			break;
+	}
+
+	return rc;
 }
 
-char * get_encrypted_ulock_cmd(void)
+char * get_cmd_hash(enum command c)
 {
-	xor(ULOCK_CMD, ulock_crypt_cmd, XORLEN);
-	return ulock_crypt_cmd;
+	switch (c) {
+		case DOOR_LOCK:
+			xor(LOCK_CMD, cmd, XORLEN);
+			break;
+		case DOOR_UNLOCK:
+			xor(UNLOCK_CMD, cmd, XORLEN);
+			break;
+		default:
+			cmd[0] = 0;
+			break;
+	} 
+
+	return cmd;
 }
