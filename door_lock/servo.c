@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "cmd.h"
 #include "serial.h"
 
 #define PWM_MIN 1200
@@ -13,10 +14,6 @@
 #define SERVO_PIN  PB1
 #define LOCK_BTN   PD6
 #define ULOCK_BTN  PD7
-
-#define XORLEN     32
-#define KEY        "dM>}jdb,6gsnC$J^K 8(I5vyPemPs%;K"
-#define ULOCK_FLAG "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
 
 static inline void servo_init(void)
 {
@@ -41,18 +38,9 @@ static inline uint8_t is_btn_pressed(uint8_t btn)
     return !((PIND >> btn) & 0x01);
 }
 
-static inline void xor(const char *s, char *d, uint8_t n)
-{
-	int i;
-
-	for (i = 0; i < n && s[i]; i++)
-		d[i] = s[i] ^ KEY[i];
-}
-
 int main(void) 
 {
-	char s1[XORLEN];
-	char s2[XORLEN + 1]; 
+	char *ulock_cmd;
 
 	servo_init();
 	pcint2_init();
@@ -62,13 +50,12 @@ int main(void)
 	sei();
 
 	for(;;) {
-		// encrypt
-		xor(ULOCK_FLAG, s1, XORLEN);
-
-		// decrypt
-		xor(s1, s2, XORLEN);
-		s2[XORLEN] = 0;
-		serial_write_line(s2);
+		ulock_cmd = get_encrypted_ulock_cmd();
+		
+		if (is_ulock_cmd(ulock_cmd))
+			serial_write_line("unlock door");
+		else
+			serial_write_line("do not unlock door");
 
 		_delay_ms(1000);
 	}

@@ -2,7 +2,7 @@ CC = avr-gcc
 MCU = atmega328p
 TARGET = app
 
-SRC = servo.c serial.c
+SRC = servo.c cmd.c serial.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
