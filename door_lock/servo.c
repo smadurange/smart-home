@@ -58,10 +58,13 @@ int main(void)
 
 	for(;;) {
 		s = cmd_hash(DOOR_UNLOCK);
-		if (cmd_cmp(s, DOOR_UNLOCK))
+
+		if (cmd_cmp(s, DOOR_LOCK))
+			serial_write_line("lock");
+		else if (cmd_cmp(s, DOOR_UNLOCK))
 			serial_write_line("unlock");
 		else
-			serial_write_line("do not unlock");
+			serial_write_line("do nothing");
 
 		_delay_ms(1000);
 	}
