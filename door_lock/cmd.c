@@ -7,7 +7,7 @@
 
 #define KEY        "dM>}jdb,6gsnC$J^K 8(I5vyPemPs%;K"
 #define LOCK_CMD   "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
-#define UNLOCK_CMD "43iqr5$NB8SpN?Z/52{iVl>o|i!.'dsT"
+#define UNLOCK_CMD "R,I7l^E4j]KyLR9'*Q{Jd'zu.~!84}Ij"
 
 static char cmd[XORLEN];
 
