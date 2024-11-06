@@ -1,4 +1,3 @@
-#include <stdint.h>
 #include <string.h>
 
 #include "cmd.h"
@@ -11,7 +10,7 @@
 
 static char cmd[XORLEN];
 
-static inline void xor(const char *s, char *d, uint8_t n)
+static inline void xor(const char *s, char *d, int n)
 {
 	int i;
 
@@ -19,7 +18,7 @@ static inline void xor(const char *s, char *d, uint8_t n)
 		d[i] = s[i] ^ KEY[i];
 }
 
-int is_valid_cmd(const char *s, enum command c)
+int cmd_cmp(const char *s, enum command c)
 {
 	int rc;
 	char buf[XORLEN + 1];
@@ -42,7 +41,7 @@ int is_valid_cmd(const char *s, enum command c)
 	return rc;
 }
 
-char * get_cmd_hash(enum command c)
+char * cmd_hash(enum command c)
 {
 	switch (c) {
 	case DOOR_LOCK:

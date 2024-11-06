@@ -27,6 +27,7 @@ void serial_write_line(const char *s)
 {
 	for (; *s; s++)
 		serial_write(*s);
+
 	serial_write('\r');
 	serial_write('\n');
 }
