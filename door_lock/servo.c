@@ -24,7 +24,12 @@ static inline void unlock(void)
 
 static inline int is_btn_pressed(unsigned char btn)
 {
-    return !((PIND >> btn) & 0x01);
+	if (!((PIND >> btn) & 0x01)) {
+		_delay_us(2000);
+    	return !((PIND >> btn) & 0x01);
+	}
+	
+	return 0;
 }
 
 static inline void pcint2_init(void)
