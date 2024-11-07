@@ -5,9 +5,8 @@
 #include "cmd.h"
 #include "serial.h"
 
-#define PWM_MIN 1200
+#define PWM_MIN 1050
 #define PWM_MID 3000
-#define PWM_MAX 5000
 
 #define SERVO_PIN   PB1
 #define LOCK_BTN    PD6
@@ -40,7 +39,7 @@ static inline void servo_init(void)
 	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
 	TCCR1B |= (1 << WGM12) | (1 << WGM13) | (1 << CS11);
 
-	ICR1 = 40000;
+	ICR1 = 20000;
 
 	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
 	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
