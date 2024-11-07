@@ -26,7 +26,7 @@ static inline int is_btn_pressed(unsigned char btn)
 {
 	if (!((PIND >> btn) & 0x01)) {
 		_delay_us(2000);
-    	return !((PIND >> btn) & 0x01);
+		return !((PIND >> btn) & 0x01);
 	}
 	
 	return 0;
