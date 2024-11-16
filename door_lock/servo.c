@@ -71,6 +71,7 @@ int main(void)
 	sei();
 
 	for(;;) {
+		// todo: power down
 	}
 
 	return 0;
