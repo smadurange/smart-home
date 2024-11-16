@@ -10,23 +10,20 @@
 #define PWM_MAX   2500
 #define PWM_TOP  20000
 
-#define PWM_LOCK   PWM_MID
-#define PWM_UNLOCK PWM_MAX - 50
-
 #define SERVO_PIN   PB1
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
 static inline void lock(void)
 {
-	OCR1A = PWM_LOCK;
+	OCR1A = PWM_MID;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
 }
 
 static inline void unlock(void)
 {
-	OCR1A = PWM_UNLOCK;
+	OCR1A = PWM_MAX - 50;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
 }
@@ -62,8 +59,6 @@ static inline void servo_init(void)
 
 int main(void) 
 {
-	cli();
-
 	servo_init();
 	pcint2_init();
 	serial_init();
