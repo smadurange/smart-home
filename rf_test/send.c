@@ -8,9 +8,9 @@
 #define UNLOCK_BTN  PD7
 
 #define SYN        0xA4
-#define ADDR       0x01
-#define LOCK_CMD   0x02
-#define UNLOCK_CMD 0x03
+#define ADDR       0x44
+#define LOCK_CMD   0x11
+#define UNLOCK_CMD 0x22
 
 static void usart_init(void)
 {
@@ -64,9 +64,9 @@ int main(void)
 	//sei();
 
 	for (;;) {
-		_delay_ms(2000);
+		_delay_ms(4000);
 		lock();
-		_delay_ms(2000);
+		_delay_ms(4000);
 		unlock();
 	}
 

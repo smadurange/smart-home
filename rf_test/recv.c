@@ -3,13 +3,14 @@
 #include <util/delay.h>
 #include <util/setbaud.h>
 
+#define TEST_LED    PB1
 #define LOCK_LED    PD6
 #define UNLOCK_LED  PD7
 
-#define SYN         0xA4
-#define ADDR        0x01
-#define LOCK_CMD    0x02
-#define UNLOCK_CMD  0x03
+#define SYN        0xA4
+#define ADDR       0x44
+#define LOCK_CMD   0x11
+#define UNLOCK_CMD 0x22
 
 static void usart_init(void)
 {
@@ -27,8 +28,8 @@ static unsigned char usart_recv(void)
 
 static void led_init(void)
 {
+	DDRB |= (1 << TEST_LED);
 	DDRD |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
-	PORTD |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
 }
 
 int main(void)
@@ -58,26 +59,24 @@ ISR(USART_RX_vect)
 {
 	unsigned char syn, addr, data, chk;
 
-	PORTD ^= ((1 << LOCK_LED) | (1 << UNLOCK_LED));
-
-	syn = usart_recv();
+	syn  = usart_recv();
 	addr = usart_recv();
 	data = usart_recv();
-	chk = usart_recv();
+	chk  = usart_recv();
 
-	//if(chk == (addr + data))
-	//{
-	//	if(addr == ADDR)
-	//	{
-	//		if(data == LOCK_CMD) {
-	//			PORTD |= (1 << LOCK_LED);
-	//			PORTD &= ~(1 << UNLOCK_LED);
-	//			
-	//		} else if (data == UNLOCK_LED) {
-	//			PORTD |= (1 << UNLOCK_LED);
-	//			PORTD &= ~(1 << LOCK_LED);
-	//		}
-	//	}
-	//}
-	
+	if(chk == (addr + data))
+	{
+		if(addr == ADDR)
+		{
+			if(data == LOCK_CMD) {
+				PORTD |= (1 << LOCK_LED);
+				PORTD &= ~(1 << UNLOCK_LED);
+				
+			} else if (data == UNLOCK_LED) {
+				PORTD |= (1 << UNLOCK_LED);
+				PORTD &= ~(1 << LOCK_LED);
+			}
+		}
+		PORTB ^= (1 << TEST_LED);
+	}
 }
