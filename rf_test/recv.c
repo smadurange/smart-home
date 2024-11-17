@@ -15,12 +15,7 @@ static void usart_init(void)
 {
 	UBRR0H = UBRRH_VALUE;
 	UBRR0L = UBRRL_VALUE;
-#if USE_2X
-	UCSR0A |= (1 << U2X0);
-#else
-	UCSR0A &= ~(1 << U2X0);
-#endif
-	UCSR0B = (1 << TXEN0) | (1 << RXEN0);
+	UCSR0B = (1 << RXEN0) | (1 << RXCIE0);
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 }
 
@@ -61,25 +56,28 @@ static inline int is_btn_pressed(unsigned char btn)
 
 ISR(USART_RX_vect)
 {
-	unsigned char addr, data, chk;
+	unsigned char syn, addr, data, chk;
 
+	PORTD ^= ((1 << LOCK_LED) | (1 << UNLOCK_LED));
+
+	syn = usart_recv();
 	addr = usart_recv();
 	data = usart_recv();
 	chk = usart_recv();
 
-	if(chk == (addr + data))
-	{
-		if(addr == ADDR)
-		{
-			if(data == LOCK_CMD) {
-				PORTD |= (1 << LOCK_LED);
-				PORTD &= ~(1 << UNLOCK_LED);
-				
-			} else if (data == UNLOCK_LED) {
-				PORTD |= (1 << UNLOCK_LED);
-				PORTD &= ~(1 << LOCK_LED);
-			}
-		}
-	}
+	//if(chk == (addr + data))
+	//{
+	//	if(addr == ADDR)
+	//	{
+	//		if(data == LOCK_CMD) {
+	//			PORTD |= (1 << LOCK_LED);
+	//			PORTD &= ~(1 << UNLOCK_LED);
+	//			
+	//		} else if (data == UNLOCK_LED) {
+	//			PORTD |= (1 << UNLOCK_LED);
+	//			PORTD &= ~(1 << LOCK_LED);
+	//		}
+	//	}
+	//}
 	
 }
