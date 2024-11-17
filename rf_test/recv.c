@@ -72,12 +72,12 @@ ISR(USART_RX_vect)
 		if(addr == ADDR)
 		{
 			if(data == LOCK_CMD) {
-				PORTC |= (1 << LOCK_LED);
-				PORTC &= ~(1 << UNLOCK_LED);
+				PORTD |= (1 << LOCK_LED);
+				PORTD &= ~(1 << UNLOCK_LED);
 				
 			} else if (data == UNLOCK_LED) {
-				PORTC |= (1 << UNLOCK_LED);
-				PORTC &= ~(1 << LOCK_LED);
+				PORTD |= (1 << UNLOCK_LED);
+				PORTD &= ~(1 << LOCK_LED);
 			}
 		}
 	}
