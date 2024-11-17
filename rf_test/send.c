@@ -7,10 +7,10 @@
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
-#define SYN        0xA4
-#define ADDR       0x44
-#define LOCK_CMD   0x11
-#define UNLOCK_CMD 0x22
+#define SYN    0xA1
+#define FIN    0xB2
+#define LOCK   0xC3
+#define UNLOCK 0xD3
 
 static void usart_init(void)
 {
@@ -35,22 +35,20 @@ static inline void pcint2_init(void)
 
 static inline void lock(void)
 {
-	PORTB ^= (1 << LOCK_LED);
+	PORTB |= (1 << LOCK_LED);
 
 	usart_send(SYN);
-	usart_send(ADDR);
-	usart_send(LOCK_CMD);
-	usart_send(LOCK_CMD + ADDR);
+	usart_send(LOCK);
+	usart_send(FIN);
 }
 
 static inline void unlock(void)
 {
-	PORTB ^= (1 << LOCK_LED);
+	PORTB &= ~(1 << LOCK_LED);
 
 	usart_send(SYN);
-	usart_send(ADDR);
-	usart_send(UNLOCK_CMD);
-	usart_send(UNLOCK_CMD + ADDR);
+	usart_send(UNLOCK);
+	usart_send(FIN);
 }
 
 int main(void)
@@ -59,9 +57,6 @@ int main(void)
 	PORTB |= (1 << LOCK_LED);
 
 	usart_init();
-	//pcint2_init();
-
-	//sei();
 
 	for (;;) {
 		_delay_ms(4000);
@@ -73,25 +68,3 @@ int main(void)
 	return 0;
 }
 
-static inline int is_btn_pressed(unsigned char btn)
-{
-	if (!((PIND >> btn) & 0x01)) {
-		_delay_us(2000);
-		return !((PIND >> btn) & 0x01);
-	}
-	
-	return 0;
-}
-
-ISR(PCINT2_vect)
-{
-	if (is_btn_pressed(LOCK_BTN)) {
-		PORTB ^= (1 << LOCK_LED);
-		//lock();
-	}
-
-	if (is_btn_pressed(UNLOCK_BTN)) {
-		PORTB ^= (1 << LOCK_LED);
-		//unlock();
-	}
-}

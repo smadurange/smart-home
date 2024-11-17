@@ -7,10 +7,10 @@
 #define LOCK_LED    PD6
 #define UNLOCK_LED  PD7
 
-#define SYN        0xA4
-#define ADDR       0x44
-#define LOCK_CMD   0x11
-#define UNLOCK_CMD 0x22
+#define SYN    0xA1
+#define FIN    0xB2
+#define LOCK   0xC3
+#define UNLOCK 0xD3
 
 static void usart_init(void)
 {
@@ -30,6 +30,7 @@ static void led_init(void)
 {
 	DDRB |= (1 << TEST_LED);
 	DDRD |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
+	PORTD |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
 }
 
 int main(void)
@@ -45,38 +46,35 @@ int main(void)
 	return 0;
 }
 
-static inline int is_btn_pressed(unsigned char btn)
-{
-	if (!((PIND >> btn) & 0x01)) {
-		_delay_us(2000);
-		return !((PIND >> btn) & 0x01);
-	}
-	
-	return 0;
-}
-
 ISR(USART_RX_vect)
 {
-	unsigned char syn, addr, data, chk;
+	unsigned char data, buf;
 
-	syn  = usart_recv();
-	addr = usart_recv();
-	data = usart_recv();
-	chk  = usart_recv();
+	data = 0;
+	buf = usart_recv();
+	
+	if (buf == SYN) {
+		buf = usart_recv();
 
-	if(chk == (addr + data))
-	{
-		if(addr == ADDR)
-		{
-			if(data == LOCK_CMD) {
-				PORTD |= (1 << LOCK_LED);
-				PORTD &= ~(1 << UNLOCK_LED);
-				
-			} else if (data == UNLOCK_LED) {
-				PORTD |= (1 << UNLOCK_LED);
-				PORTD &= ~(1 << LOCK_LED);
+		while (buf != FIN) {
+			buf = usart_recv();
+
+			if (buf == SYN) {
+				PORTB ^= (1 << TEST_LED);
+				return;
 			}
+
+			if (buf != FIN)
+				data = buf;
 		}
-		PORTB ^= (1 << TEST_LED);
+
+		if(data == LOCK) {
+			PORTD |= (1 << LOCK_LED);
+			PORTD &= ~(1 << UNLOCK_LED);
+		} else if (data == UNLOCK) {
+			PORTD |= (1 << UNLOCK_LED);
+			PORTD &= ~(1 << LOCK_LED);
+		}
 	}
+
 }
