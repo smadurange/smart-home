@@ -2,25 +2,14 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "spi.h"
+
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
 #define SYN    0xAA
 #define LOCK   0xB5
 #define UNLOCK 0xAE
-
-static inline void spi_init(void)
-{
-	DDR_SPI = (1 << DD_MOSI) | (1 << DD_SCK);
-	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
-}
-
-static inline void spi_send(unsigned char data)
-{
-	SPRD = data;
-	while (!(SPSR & (1 << SPIF)))
-		;
-}
 
 static inline void lock(void)
 {
