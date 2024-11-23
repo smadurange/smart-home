@@ -2,7 +2,7 @@ CC = avr-gcc
 MCU = atmega328p
 TARGET = send
 
-SRC = send.c
+SRC = rfm.c send.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99

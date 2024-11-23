@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void rfm_init(void);
+void rfm_init(uint8_t addr);
 
 void rfm_send(uint8_t addr, uint8_t data);
 

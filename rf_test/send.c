@@ -2,8 +2,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "spi.h"
-
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
