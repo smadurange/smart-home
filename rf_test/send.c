@@ -1,30 +1,55 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include <util/setbaud.h>
 
-#define LOCK_LED    PB1
+#define LOCK_LED    PB5
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
-#define SYN    0xA1
-#define FIN    0xB2
-#define LOCK   0xC3
-#define UNLOCK 0xD3
+#define SYN    0xAA
+#define LOCK   0xB5
+#define UNLOCK 0xAE
 
-static void usart_init(void)
+#define SIGPIN  PD2
+#define SIGLEN  500
+
+static inline void send(unsigned char c)
 {
-	UBRR0H = UBRRH_VALUE;
-	UBRR0L = UBRRL_VALUE;
-	UCSR0B = (1 << TXEN0);
-	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
+	int n;
+	
+	for (n = 7; n >= 0; n--) {
+		PORTD = ((c >> n) & 1) == 1 
+			? PORTD | (1 << SIGPIN) 
+			: PORTD & ~(1 << SIGPIN);
+
+		_delay_us(SIGLEN);
+	}
+
+	PORTD &= ~(1 << SIGPIN);
 }
 
-static void usart_send(unsigned char data)
+static inline void lock(void)
 {
-	while (!(UCSR0A & (1 << UDRE0)))
-		;
-	UDR0 = data;
+	send(SYN);
+	send(LOCK);
+	PORTB |= (1 << LOCK_LED);
+}
+
+static inline void unlock(void)
+{
+	send(SYN);
+	send(UNLOCK);
+	PORTB &= ~(1 << LOCK_LED);
+}
+
+static inline int is_btn_pressed(unsigned char btn)
+{
+	if (!((PINB >> btn) & 0x01)) {
+		_delay_us(2000);
+		return !((PINB >> btn) & 0x01);
+	}
+	
+	return 0;
 }
 
 static inline void pcint2_init(void)
@@ -33,38 +58,30 @@ static inline void pcint2_init(void)
 	PCMSK2 |= ((1 << PCINT22) | (1 << PCINT23));
 }
 
-static inline void lock(void)
-{
-	PORTB |= (1 << LOCK_LED);
-
-	usart_send(SYN);
-	usart_send(LOCK);
-	usart_send(FIN);
-}
-
-static inline void unlock(void)
-{
-	PORTB &= ~(1 << LOCK_LED);
-
-	usart_send(SYN);
-	usart_send(UNLOCK);
-	usart_send(FIN);
-}
-
 int main(void)
 {
 	DDRB |= (1 << LOCK_LED);
-	PORTB |= (1 << LOCK_LED);
 
-	usart_init();
+	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
+	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
+
+	DDRD |= (1 << SIGPIN);
+	PORTD &= ~(1 << SIGPIN);
+
+	pcint2_init();
+	sei();
 
 	for (;;) {
-		_delay_ms(4000);
-		lock();
-		_delay_ms(4000);
-		unlock();
 	}
 
 	return 0;
 }
 
+ISR(PCINT2_vect)
+{
+	if (is_btn_pressed(LOCK_BTN))
+		lock();
+
+	if (is_btn_pressed(UNLOCK_BTN))
+		unlock();
+}
