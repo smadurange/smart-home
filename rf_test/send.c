@@ -2,7 +2,6 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define LOCK_LED    PB5
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
@@ -10,36 +9,29 @@
 #define LOCK   0xB5
 #define UNLOCK 0xAE
 
-#define SIGPIN  PD2
-#define SIGLEN  500
-
-static inline void send(unsigned char c)
+static inline void spi_init(void)
 {
-	int n;
-	
-	for (n = 7; n >= 0; n--) {
-		PORTD = ((c >> n) & 1) == 1 
-			? PORTD | (1 << SIGPIN) 
-			: PORTD & ~(1 << SIGPIN);
+	DDR_SPI = (1 << DD_MOSI) | (1 << DD_SCK);
+	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+}
 
-		_delay_us(SIGLEN);
-	}
-
-	PORTD &= ~(1 << SIGPIN);
+static inline void spi_send(unsigned char data)
+{
+	SPRD = data;
+	while (!(SPSR & (1 << SPIF)))
+		;
 }
 
 static inline void lock(void)
 {
-	send(SYN);
-	send(LOCK);
-	PORTB |= (1 << LOCK_LED);
+	spi_send(SYN);
+	spi_send(LOCK);
 }
 
 static inline void unlock(void)
 {
-	send(SYN);
-	send(UNLOCK);
-	PORTB &= ~(1 << LOCK_LED);
+	spi_send(SYN);
+	spi_send(UNLOCK);
 }
 
 static inline int is_btn_pressed(unsigned char btn)
@@ -60,19 +52,16 @@ static inline void pcint2_init(void)
 
 int main(void)
 {
-	DDRB |= (1 << LOCK_LED);
-
 	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
 	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
 
-	DDRD |= (1 << SIGPIN);
-	PORTD &= ~(1 << SIGPIN);
-
+	spi_init();
 	pcint2_init();
+
 	sei();
 
-	for (;;) {
-	}
+	for (;;)
+		;
 
 	return 0;
 }
