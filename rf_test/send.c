@@ -2,23 +2,29 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "rfm.h"
+
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
-#define SYN    0xAA
+#define ADDR   0xAA
 #define LOCK   0xB5
 #define UNLOCK 0xAE
 
 static inline void lock(void)
 {
-	spi_send(SYN);
-	spi_send(LOCK);
+	uint8_t data[1];
+
+	data[0] = LOCK;
+	rfm_sendto(ADDR, data, 1);
 }
 
 static inline void unlock(void)
 {
-	spi_send(SYN);
-	spi_send(UNLOCK);
+	uint8_t data[1];
+
+	data[0] = UNLOCK;
+	rfm_sendto(ADDR, data, 1);
 }
 
 static inline int is_btn_pressed(unsigned char btn)
@@ -42,7 +48,7 @@ int main(void)
 	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
 	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
 
-	spi_init();
+	rfm_init();
 	pcint2_init();
 
 	sei();

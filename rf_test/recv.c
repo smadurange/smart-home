@@ -2,6 +2,9 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "rfm.h"
+#include "serial.h"
+
 #define TEST_LED    PB1
 #define LOCK_LED    PD6
 #define UNLOCK_LED  PD7
@@ -11,9 +14,6 @@
 #define UNLOCK 0xAE
 
 #define SIGPIN PB3
-#define SIGLEN 200
-
-static volatile unsigned char data = 0;
 
 static inline void led_init(void)
 {
@@ -33,35 +33,30 @@ int main(void)
 	PORTB &= ~(1 << SIGPIN);
 
 	led_init();
+	serial_init();
 	pcint2_init();
 
 	sei();
 
-	for (;;) {
-		if (data == LOCK) {
-			PORTD |= (1 << LOCK_LED);
-			PORTD &= ~(1 << UNLOCK_LED);
-		}
-
-		if (data == UNLOCK) {
-			PORTD &= ~(1 << LOCK_LED);
-			PORTD |= (1 << UNLOCK_LED);
-		}
-
-		data = 0;
-		_delay_ms(100);
-	}
+	for (;;)
+		;
 
 	return 0;
 }
 
 ISR(PCINT2_vect)
 {
-	int n, bit;
+	char *s;
+	uint8_t buf[2], n;	
 
-	for (n = 7; n >= 0; n--) {
-		_delay_ms(SIGLEN);
-		bit = ((PINB >> SIGPIN) & 1);	
-		data = bit == 1 ? (data | (1 << n)) : (data & ~(1 << n));
-	}
+	n = rfm_recvfrom(0x00, buf, 2);
+
+	if (buf[1] == LOCK)
+		s = "LOCK";
+	else if (buf[1] == UNLOCK)
+		s = "UNLOCK";
+	else
+		s = "Garbage";
+	
+	serial_write_line(s);
 }

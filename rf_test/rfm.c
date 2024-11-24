@@ -32,7 +32,7 @@ static inline uint8_t read_reg(uint8_t reg)
 	uint8_t data;
 
 	SS_PORT |= (1 << SS_PIN);
-	SPDR = addr | 0x7F;
+	SPDR = reg | 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
 	data = SPDR;
@@ -45,7 +45,7 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 {
 	while (read_reg(reg) != val) {
 		SS_PORT |= (1 << SS_PIN);
-		SPDR = addr | 0x80;
+		SPDR = reg | 0x80;
 		while (!(SPSR & (1 << SPIF)))
 			;
 		SS_PORT &= ~(1 << SS_PIN);

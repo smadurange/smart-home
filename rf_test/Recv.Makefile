@@ -2,7 +2,7 @@ CC = avr-gcc
 MCU = atmega328p
 TARGET = recv
 
-SRC = rfm.c recv.c
+SRC = rfm.c recv.c serial.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
