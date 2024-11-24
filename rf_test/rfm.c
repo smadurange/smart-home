@@ -11,7 +11,7 @@
 #define MISO_PIN PB4
 #define SPI_DDR  DDRB
 
-// RFM operation modes
+// RFM69 op modes
 #define RX        0x10
 #define TX        0x0C
 #define SLEEP     0x00
@@ -81,7 +81,7 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 {
 	uint8_t i;
 
-	set_mode(STDBY_MODE);
+	set_mode(STDBY);
 
 	SS_PORT |= (1 << SS_PIN);
 
@@ -101,7 +101,7 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 
 	SS_PORT &= ~(1 << SS_PIN);
 
-	set_mode(TX_MODE);
+	set_mode(TX);
 	
 	while (!((read_reg(0x28) >> 3) & 1))
 		;
