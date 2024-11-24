@@ -109,16 +109,14 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 
 uint8_t rfm_recvfrom(uint8_t addr, uint8_t *buf, uint8_t n)
 {
-	uint8_t i, buflen;
+	uint8_t i;
 	
 	SS_PORT |= (1 << SS_PIN);
 
-	for (i = 0, buflen = 0; i < n && ((read_reg(0x28) >> 6) & 1); i++) {
+	for (i = 0; i < n && ((read_reg(0x28) >> 6) & 1); i++)
 		buf[i] = read_reg(0x00);
-		buflen++;
-	}
 
 	SS_PORT &= ~(1 << SS_PIN);
 
-	return buflen;
+	return i;
 }
