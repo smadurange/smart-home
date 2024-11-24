@@ -58,7 +58,6 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 static inline void set_mode(uint8_t mode)
 {
 	write_reg(0x01, mode);
-
 	while (!read_reg(0x27))
 		;
 }
@@ -82,6 +81,28 @@ void rfm_init(uint8_t addr)
 	write_reg(0x3D, 0x02);
 }
 
-void rfm_send(uint8_t addr, uint8_t data)
+void rfm_send(uint8_t addr, uint8_t *data, uint8_t n)
 {
+	uint8_t i;
+
+	set_mode(STDBY_MODE);
+
+	SS_PORT |= (1 << SS_PIN);
+	
+	SPDR = 0x7F;
+	while (!(SPSR & (1 << SPIF)))
+		;
+
+	for (i = 0; i < n; i++) {
+		SPDR = data[i];
+		while (!(SPSR & (1 << SPIF)))
+			;
+	}	
+	
+	SS_PORT &= ~(1 << SS_PIN);
+
+	set_mode(TX_MODE);
+	
+	while (!((read_reg(0x28) >> 3) & 1))
+		;
 }
