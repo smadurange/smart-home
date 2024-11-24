@@ -3,8 +3,9 @@
 #include <util/delay.h>
 
 #include "rfm.h"
+#include "serial.h"
 
-#define LED_PIN     PB1
+#define LED_PIN     PC1
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
@@ -17,7 +18,9 @@ static inline void lock(void)
 	uint8_t data[1];
 
 	data[0] = LOCK;
-	rfm_sendto(ADDR, data, 1);
+	//rfm_sendto(ADDR, data, 1);
+	
+	serial_write_line("Locked");
 
 	PORTB |= (1 << LED_PIN);
 	_delay_ms(500);
@@ -29,7 +32,9 @@ static inline void unlock(void)
 	uint8_t data[1];
 
 	data[0] = UNLOCK;
-	rfm_sendto(ADDR, data, 1);
+	//rfm_sendto(ADDR, data, 1);
+
+	serial_write_line("Unlocked");
 
 	PORTB |= (1 << LED_PIN);
 	_delay_ms(500);
@@ -59,7 +64,8 @@ int main(void)
 
 	DDRB |= (1 << LED_PIN);
 
-	rfm_init();
+	//rfm_init();
+	serial_init();
 	pcint2_init();
 
 	sei();

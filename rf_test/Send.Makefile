@@ -2,13 +2,14 @@ CC = avr-gcc
 MCU = atmega328p
 TARGET = send
 
-SRC = rfm.c send.c
+SRC = rfm.c send.c serial.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
 CFLAGS += -Os
 CFLAGS += -Wall
 CFLAGS += -mmcu=$(MCU)
+CFLAGS += -DF_BAUD=115200
 CFLAGS += -DF_CPU=16000000UL
 CFLAGS += -ffunction-sections -fdata-sections
 
