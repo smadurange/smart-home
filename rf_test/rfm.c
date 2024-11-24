@@ -9,13 +9,12 @@
 #define SCK_PIN  PB5
 #define MOSI_PIN PB3
 #define MISO_PIN PB4
+#define SPI_DDR  DDRB
 
-#define SPI_DDR DDRB
-
+#define RX_MODE    0x10
+#define TX_MODE    0x0C
 #define SLEEP_MODE 0x00
 #define STDBY_MODE 0x04
-#define TX_MODE    0x0C
-#define RX_MODE    0x10
 
 static inline void spi_init(void)
 {
