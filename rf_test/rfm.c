@@ -12,6 +12,11 @@
 
 #define SPI_DDR DDRB
 
+#define SLEEP_MODE 0x00
+#define STDBY_MODE 0x04
+#define TX_MODE    0x0C
+#define RX_MODE    0x10
+
 static inline void spi_init(void)
 {
 	SS_DDR |= (1 << SS_PIN);
@@ -53,6 +58,7 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 static inline void set_mode(uint8_t mode)
 {
 	write_reg(0x01, mode);
+
 	while (!read_reg(0x27))
 		;
 }
@@ -61,8 +67,7 @@ void rfm_init(uint8_t addr)
 {
 	spi_init();
 
-	// mode: standby + packet
-	set_mode(0x04);
+	set_mode(STDBY_MODE);
 
 	// rx interrupt on DPIO0
 	write_reg(0x25, 0x40);
@@ -79,5 +84,4 @@ void rfm_init(uint8_t addr)
 
 void rfm_send(uint8_t addr, uint8_t data)
 {
-	
 }
