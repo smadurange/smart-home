@@ -24,45 +24,28 @@ static inline void spi_init(void)
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 }
 
-static inline uint8_t spi_read(uint8_t addr)
-{
-	SS_PORT |= (1 << SS_PIN);
-
-	SPDR = addr;
-	while (!(SPSR & (1 << SPIF)))
-		;
-
-	addr = SPDR;
-
-	SS_PORT &= ~(1 << SS_PIN);
-
-	return addr;
-}
-
-static inline void spi_write(uint8_t addr, uint8_t data)
-{
-	SS_PORT |= (1 << SS_PIN);
-
-	SPDR = addr;
-	while (!(SPSR & (1 << SPIF)))
-		;
-
-	SPDR = data;
-	while (!(SPSR & (1 << SPIF)))
-		;
-
-	SS_PORT &= ~(1 << SS_PIN);
-}
-
 static inline void send_cmd(uint8_t addr, uint8_t val)
 {
-	uint8_t ra, wa;
+	SS_PORT |= (1 << SS_PIN);
 
-	ra = addr | READ_MASK;
-	wa = addr | WRITE_MASK; 
+check_val:
+	SPDR = addr | READ_MASK;
+	while (!(SPSR & (1 << SPIF)))
+		;
 
-	while (spi_read(ra) != val)
-		spi_write(wa, val);
+	if (SPDR != val) {
+		SPDR = addr | WRITE_MASK;
+		while (!(SPSR & (1 << SPIF)))
+			;
+
+		SPDR = val;
+		while (!(SPSR & (1 << SPIF)))
+			;
+
+		goto check_val;
+	}
+
+	SS_PORT &= ~(1 << SS_PIN);
 }
 
 void rfm_init(uint8_t addr)
