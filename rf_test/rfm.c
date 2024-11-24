@@ -26,9 +26,9 @@ static inline void spi_init(void)
 
 static inline void send_cmd(uint8_t addr, uint8_t val)
 {
+check_val:
 	SS_PORT |= (1 << SS_PIN);
 
-check_val:
 	SPDR = addr | READ_MASK;
 	while (!(SPSR & (1 << SPIF)))
 		;
@@ -42,10 +42,9 @@ check_val:
 		while (!(SPSR & (1 << SPIF)))
 			;
 
+		SS_PORT &= ~(1 << SS_PIN);
 		goto check_val;
 	}
-
-	SS_PORT &= ~(1 << SS_PIN);
 }
 
 void rfm_init(uint8_t addr)
