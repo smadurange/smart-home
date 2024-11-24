@@ -5,6 +5,6 @@
 
 void rfm_init(uint8_t addr);
 
-void rfm_send(uint8_t addr, uint8_t data);
+void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n);
 
 #endif /* RFM69_H */

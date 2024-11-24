@@ -76,7 +76,7 @@ void rfm_init(uint8_t addr)
 	write_reg(0x3D, 0x02);
 }
 
-void rfm_send(uint8_t addr, uint8_t *data, uint8_t n)
+void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 {
 	uint8_t i;
 
