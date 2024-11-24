@@ -12,9 +12,6 @@
 
 #define SPI_DDR DDRB
 
-#define READ_MASK  0x7F
-#define WRITE_MASK 0x80
-
 static inline void spi_init(void)
 {
 	SS_DDR |= (1 << SS_PIN);
@@ -24,27 +21,40 @@ static inline void spi_init(void)
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 }
 
-static inline void send_cmd(uint8_t addr, uint8_t val)
+static inline uint8_t read_reg(uint8_t reg)
 {
-check_val:
+	uint8_t data;
+
 	SS_PORT |= (1 << SS_PIN);
 
-	SPDR = addr | READ_MASK;
+	SPDR = addr | 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
 
-	if (SPDR != val) {
-		SPDR = addr | WRITE_MASK;
-		while (!(SPSR & (1 << SPIF)))
-			;
+	data = SPDR;
+	SS_PORT &= ~(1 << SS_PIN);
 
-		SPDR = val;
+	return data;
+}
+
+static inline void write_reg(uint8_t reg, uint8_t val)
+{
+	while (read_reg(reg) != val) {
+		SS_PORT |= (1 << SS_PIN);
+
+		SPDR = addr | 0x80;
 		while (!(SPSR & (1 << SPIF)))
 			;
 
 		SS_PORT &= ~(1 << SS_PIN);
-		goto check_val;
 	}
+}
+
+static inline void set_mode(uint8_t mode)
+{
+	write_reg(0x01, mode);
+	while (!read_reg(0x27))
+		;
 }
 
 void rfm_init(uint8_t addr)
@@ -52,21 +62,22 @@ void rfm_init(uint8_t addr)
 	spi_init();
 
 	// mode: standby + packet
-	send_cmd(0x01, 0x44);
+	set_mode(0x04);
 
 	// rx interrupt on DPIO0
-	send_cmd(0x25, 0x40);
-	send_cmd(0x26, 0x07);
+	write_reg(0x25, 0x40);
+	write_reg(0x26, 0x07);
 
 	// packet format: 8 bits + whitening + crc + addr filtering
-	send_cmd(0x37, 0x52);
-	send_cmd(0x38, 0x08);
-	send_cmd(0x38, addr);
+	write_reg(0x37, 0x52);
+	write_reg(0x38, 0x08);
+	write_reg(0x38, addr);
 
 	// disable encryption
-	send_cmd(0x3D, 0x02);
+	write_reg(0x3D, 0x02);
 }
 
 void rfm_send(uint8_t addr, uint8_t data)
 {
+	
 }
