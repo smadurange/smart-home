@@ -4,6 +4,7 @@
 
 #include "rfm.h"
 
+#define LED_PIN     PB1
 #define LOCK_BTN    PD6
 #define UNLOCK_BTN  PD7
 
@@ -17,6 +18,10 @@ static inline void lock(void)
 
 	data[0] = LOCK;
 	rfm_sendto(ADDR, data, 1);
+
+	PORTB |= (1 << LED_PIN);
+	_delay_ms(500);
+	PORTB &= ~(1 << LED_PIN);
 }
 
 static inline void unlock(void)
@@ -25,6 +30,10 @@ static inline void unlock(void)
 
 	data[0] = UNLOCK;
 	rfm_sendto(ADDR, data, 1);
+
+	PORTB |= (1 << LED_PIN);
+	_delay_ms(500);
+	PORTB &= ~(1 << LED_PIN);
 }
 
 static inline int is_btn_pressed(unsigned char btn)
@@ -47,6 +56,8 @@ int main(void)
 {
 	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
 	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
+
+	DDRB |= (1 << LED_PIN);
 
 	rfm_init();
 	pcint2_init();

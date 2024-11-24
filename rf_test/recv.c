@@ -13,7 +13,7 @@
 #define LOCK   0xB5
 #define UNLOCK 0xAE
 
-#define SIGPIN PB3
+#define SIGPIN PB0
 
 static inline void led_init(void)
 {
@@ -24,7 +24,7 @@ static inline void led_init(void)
 static inline void pcint2_init(void)
 {
     PCICR |= (1 << PCIE2);
-    PCMSK2 |= (1 << PCINT2);
+    PCMSK2 |= (1 << PCINT0);
 }
 
 int main(void)
