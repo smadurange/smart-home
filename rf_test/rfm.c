@@ -11,10 +11,12 @@
 #define MISO_PIN PB4
 #define SPI_DDR  DDRB
 
-#define RX_MODE    0x10
-#define TX_MODE    0x0C
-#define SLEEP_MODE 0x00
-#define STDBY_MODE 0x04
+// RFM operation modes
+#define RX        0x10
+#define TX        0x0C
+#define SLEEP     0x00
+#define STDBY     0x04
+#define LISTEN_ON 0x40
 
 static inline void spi_init(void)
 {
@@ -57,20 +59,19 @@ static inline void set_mode(uint8_t mode)
 		;
 }
 
-void rfm_init(uint8_t addr)
+void rfm_init(void)
 {
 	spi_init();
 
-	set_mode(STDBY_MODE);
+	set_mode(STDBY | LISTEN_ON);
 
 	// rx interrupt on DPIO0
 	write_reg(0x25, 0x40);
 	write_reg(0x26, 0x07);
 
-	// packet format: 8 bits + whitening + crc + addr filtering
+	// packet format: 8 bits + whitening + crc
 	write_reg(0x37, 0x52);
 	write_reg(0x38, 0x08);
-	write_reg(0x38, addr);
 
 	// disable encryption
 	write_reg(0x3D, 0x02);
@@ -97,4 +98,8 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 	
 	while (!((read_reg(0x28) >> 3) & 1))
 		;
+}
+
+void rfm_recvfrom(void)
+{
 }
