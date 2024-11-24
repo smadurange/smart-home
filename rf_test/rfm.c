@@ -84,14 +84,21 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 	set_mode(STDBY_MODE);
 
 	SS_PORT |= (1 << SS_PIN);
+
 	SPDR = 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
+
+	SPDR = addr;
+	while (!(SPSR & (1 << SPIF)))
+		;
+
 	for (i = 0; i < n; i++) {
 		SPDR = data[i];
 		while (!(SPSR & (1 << SPIF)))
 			;
 	}	
+
 	SS_PORT &= ~(1 << SS_PIN);
 
 	set_mode(TX_MODE);
@@ -100,6 +107,7 @@ void rfm_sendto(uint8_t addr, uint8_t *data, uint8_t n)
 		;
 }
 
-void rfm_recvfrom(void)
+void rfm_recvfrom(uint8_t addr)
 {
+	
 }
