@@ -86,13 +86,11 @@ void rfm_send(uint8_t addr, uint8_t *data, uint8_t n)
 	SPDR = 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
-
 	for (i = 0; i < n; i++) {
 		SPDR = data[i];
 		while (!(SPSR & (1 << SPIF)))
 			;
 	}	
-
 	SS_PORT &= ~(1 << SS_PIN);
 
 	set_mode(TX_MODE);
