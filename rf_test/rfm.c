@@ -21,8 +21,8 @@ static inline void spi_init(void)
 {
 	SS_DDR |= (1 << SS_PIN);
 	SS_PORT |= (1 << SS_PIN);
-
 	SPI_DDR = (1 << MOSI_PIN) | (1 << SCK_PIN);
+
 	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
 }
 
@@ -31,11 +31,9 @@ static inline uint8_t read_reg(uint8_t reg)
 	uint8_t data;
 
 	SS_PORT |= (1 << SS_PIN);
-
 	SPDR = addr | 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
-
 	data = SPDR;
 	SS_PORT &= ~(1 << SS_PIN);
 
@@ -46,11 +44,9 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 {
 	while (read_reg(reg) != val) {
 		SS_PORT |= (1 << SS_PIN);
-
 		SPDR = addr | 0x80;
 		while (!(SPSR & (1 << SPIF)))
 			;
-
 		SS_PORT &= ~(1 << SS_PIN);
 	}
 }
@@ -88,7 +84,6 @@ void rfm_send(uint8_t addr, uint8_t *data, uint8_t n)
 	set_mode(STDBY_MODE);
 
 	SS_PORT |= (1 << SS_PIN);
-	
 	SPDR = 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
@@ -98,7 +93,7 @@ void rfm_send(uint8_t addr, uint8_t *data, uint8_t n)
 		while (!(SPSR & (1 << SPIF)))
 			;
 	}	
-	
+
 	SS_PORT &= ~(1 << SS_PIN);
 
 	set_mode(TX_MODE);
