@@ -37,23 +37,17 @@ static inline uint8_t read_reg(uint8_t reg)
 
 static inline void write_reg(uint8_t reg, uint8_t val)
 {
-	serial_write_line("writing register");
+	SPI_PORT &= ~(1 << SPI_SS);
 
-	while (read_reg(reg) != val) {
-		SPI_PORT &= ~(1 << SPI_SS);
+	SPDR = reg | 0x80;
+	while (!(SPSR & (1 << SPIF)))
+		;
 
-		SPDR = reg | 0x80;
-		while (!(SPSR & (1 << SPIF)))
-			;
+	SPDR = val;
+	while (!(SPSR & (1 << SPIF)))
+		;
 
-		SPDR = val;
-		while (!(SPSR & (1 << SPIF)))
-			;
-
-		SPI_PORT |= (1 << SPI_SS);
-	}
-
-	serial_write_line("writing register done");
+	SPI_PORT |= (1 << SPI_SS);
 }
 
 static inline void set_mode(uint8_t mode)
