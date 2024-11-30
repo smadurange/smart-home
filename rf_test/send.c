@@ -18,9 +18,11 @@ static inline void lock(void)
 	uint8_t data[1];
 
 	data[0] = LOCK;
-	//rfm_sendto(ADDR, data, 1);
+
 	
-	serial_write_line("Locked");
+	serial_write_line("sending lock command...");
+	rfm_sendto(ADDR, data, 1);
+	serial_write_line("lock command sent");
 
 	PORTB |= (1 << LED_PIN);
 	_delay_ms(500);
@@ -32,9 +34,10 @@ static inline void unlock(void)
 	uint8_t data[1];
 
 	data[0] = UNLOCK;
-	//rfm_sendto(ADDR, data, 1);
 
-	serial_write_line("Unlocked");
+	serial_write_line("sending unlock command...");
+	rfm_sendto(ADDR, data, 1);
+	serial_write_line("unlock command sent");
 
 	PORTB |= (1 << LED_PIN);
 	_delay_ms(500);
@@ -64,8 +67,13 @@ int main(void)
 
 	DDRB |= (1 << LED_PIN);
 
-	//rfm_init();
 	serial_init();
+
+	_delay_ms(3000);
+	serial_write_line("intializing RF module...");
+	rfm_init();
+	serial_write_line("intialized RF module");
+
 	pcint2_init();
 
 	sei();

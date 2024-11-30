@@ -24,7 +24,7 @@ static inline void spi_init(void)
 	SS_PORT |= (1 << SS_PIN);
 	SPI_DDR = (1 << MOSI_PIN) | (1 << SCK_PIN);
 
-	SPCR = (1 << SPE) | (1 << MSTR) | (1 << SPR0);
+	SPCR = (1 << SPE) | (1 << MSTR);
 }
 
 static inline uint8_t read_reg(uint8_t reg)
