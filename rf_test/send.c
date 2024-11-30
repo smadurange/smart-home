@@ -63,7 +63,7 @@ static inline void set_mode(uint8_t mode)
 		;
 }
 
-static inline void rfm69_init(void)
+static inline void radio_init(void)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
@@ -78,7 +78,7 @@ int main(void)
 
 	_delay_ms(5000);
 	serial_write_line("Initializing radio");
-	rfm69_init();
+	radio_init();
 	serial_write_line("Initialized radio");
 
 	for (;;)
