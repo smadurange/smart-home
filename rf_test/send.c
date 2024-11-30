@@ -43,9 +43,9 @@ static inline void unlock(void)
 
 static inline int is_btn_pressed(unsigned char btn)
 {
-	if (!((PINB >> btn) & 0x01)) {
+	if (!((PIND >> btn) & 0x01)) {
 		_delay_us(2000);
-		return !((PINB >> btn) & 0x01);
+		return !((PIND >> btn) & 0x01);
 	}
 	
 	return 0;
