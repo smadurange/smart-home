@@ -2,81 +2,84 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#include "rfm.h"
 #include "serial.h"
 
-#define LED_PIN     PC1
-#define LOCK_BTN    PD6
-#define UNLOCK_BTN  PD7
+#define SPI_SS      PB2
+#define SPI_SCK     PB5
+#define SPI_MISO    PB4
+#define SPI_MOSI    PB3
 
-#define ADDR   0xAA
-#define LOCK   0xB5
-#define UNLOCK 0xAE
+#define SPI_DDR     DDRB
+#define SPI_PORT    PORTB
 
-static inline void lock(void)
+#define STDBY       0x04
+#define LISTEN_ON   0x40
+
+static inline uint8_t read_reg(uint8_t reg)
 {
-	uint8_t data[1];
+	uint8_t data;
 
-	data[0] = LOCK;
+	SPI_PORT &= ~(1 << SPI_SS);
 
-	
-	serial_write_line("sending lock command...");
-	rfm_sendto(ADDR, data, 1);
-	serial_write_line("lock command sent");
+	SPDR = reg | 0x7F;
+	while (!(SPSR & (1 << SPIF)))
+		;
 
-	PORTB |= (1 << LED_PIN);
-	_delay_ms(500);
-	PORTB &= ~(1 << LED_PIN);
+	SPDR = 0;
+	while (!(SPSR & (1 << SPIF)))
+		;
+
+	data = SPDR;
+	SPI_PORT |= (1 << SPI_SS);
+
+	return data;
 }
 
-static inline void unlock(void)
+static inline void write_reg(uint8_t reg, uint8_t val)
 {
-	uint8_t data[1];
+	serial_write_line("writing register");
 
-	data[0] = UNLOCK;
+	while (read_reg(reg) != val) {
+		SPI_PORT &= ~(1 << SPI_SS);
 
-	serial_write_line("sending unlock command...");
-	rfm_sendto(ADDR, data, 1);
-	serial_write_line("unlock command sent");
+		SPDR = reg | 0x80;
+		while (!(SPSR & (1 << SPIF)))
+			;
 
-	PORTB |= (1 << LED_PIN);
-	_delay_ms(500);
-	PORTB &= ~(1 << LED_PIN);
-}
+		SPDR = val;
+		while (!(SPSR & (1 << SPIF)))
+			;
 
-static inline int is_btn_pressed(unsigned char btn)
-{
-	if (!((PIND >> btn) & 0x01)) {
-		_delay_us(2000);
-		return !((PIND >> btn) & 0x01);
+		SPI_PORT |= (1 << SPI_SS);
 	}
-	
-	return 0;
+
+	serial_write_line("writing register done");
 }
 
-static inline void pcint2_init(void)
+static inline void set_mode(uint8_t mode)
 {
-	PCICR |= (1 << PCIE2);
-	PCMSK2 |= ((1 << PCINT22) | (1 << PCINT23));
+	write_reg(0x01, mode);
+	while (!read_reg(0x27))
+		;
+}
+
+static inline void rfm69_init(void)
+{
+	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
+	SPI_PORT |= (1 << SPI_SS);
+	SPCR |= (1 << SPE) | (1 << MSTR);
+
+	set_mode(STDBY | LISTEN_ON);
 }
 
 int main(void)
 {
-	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
-	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
-
-	DDRB |= (1 << LED_PIN);
-
 	serial_init();
 
-	_delay_ms(3000);
-	serial_write_line("intializing RF module...");
-	rfm_init();
-	serial_write_line("intialized RF module");
-
-	pcint2_init();
-
-	sei();
+	_delay_ms(5000);
+	serial_write_line("Initializing radio");
+	rfm69_init();
+	serial_write_line("Initialized radio");
 
 	for (;;)
 		;
@@ -84,11 +87,3 @@ int main(void)
 	return 0;
 }
 
-ISR(PCINT2_vect)
-{
-	if (is_btn_pressed(LOCK_BTN))
-		lock();
-
-	if (is_btn_pressed(UNLOCK_BTN))
-		unlock();
-}
