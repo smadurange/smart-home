@@ -11,9 +11,21 @@
 #define SPI_SCK     PB5
 #define SPI_MISO    PB4
 #define SPI_MOSI    PB3
-
 #define SPI_DDR     DDRB
 #define SPI_PORT    PORTB
+
+#define RX_PIN         PB0
+#define RX_DDR         DDRB
+#define RX_PORT        PORTB
+#define RX_PCIE        PCIE0
+#define RX_PCINT       PCINT0
+#define RX_PCMSK       PCMSK0
+#define RX_PCINTvec    PCINT0_vect
+
+#define RX_BUFLEN   32
+
+static char rxbuf[RX_BUFLEN];
+static volatile uint8_t rx_ready = 0;
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -50,7 +62,6 @@ static inline void radio_send(const char *data, uint8_t n)
 	while ((read_reg(0x27) >> 7) != 1)
 		;
 
-	// queue data to FIFO register
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x80;
 	while (!(SPSR & (1 << SPIF)))
@@ -62,8 +73,21 @@ static inline void radio_send(const char *data, uint8_t n)
 	}
 	SPI_PORT |= (1 << SPI_SS);
 
-	// initiate transmission by switching to TX mode
-	write_reg(0x01, 0x0C);	
+	write_reg(0x01, 0x0C);
+	while (!read_reg(0x28))
+		;
+
+	write_reg(0x01, 0x04);
+	while ((read_reg(0x27) >> 7) != 1)
+		;
+
+	// STDBY + ListenOn mode
+	write_reg(0x01, (read_reg(0x01) | 0x40));
+}
+
+static inline void radio_recv(char *buf, uint8_t n)
+{
+	uint8_t i;
 }
 
 static inline void radio_init(void)
@@ -71,6 +95,10 @@ static inline void radio_init(void)
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
+
+	//RX_DDR &= ~(1 << RX_PIN);
+	//PCICR |= (1 << RX_PCIE);
+	//RX_PCMSK |= (1 << RX_PCINT);
 }
 
 int main(void)
@@ -79,6 +107,8 @@ int main(void)
 
 	serial_init();
 	radio_init();
+
+	sei();
 
 	for (;;) {
 		radio_send(s, strlen(s));
@@ -89,3 +119,6 @@ int main(void)
 	return 0;
 }
 
+ISR(RX_PCINTvec)
+{
+}
