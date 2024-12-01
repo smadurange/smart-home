@@ -20,7 +20,7 @@
 #define RX_PCIE        PCIE0
 #define RX_PCINT       PCINT0
 #define RX_PCMSK       PCMSK0
-#define RX_PCINTvec    PCINT0_vect
+#define RX_PCINTVEC    PCINT0_vect
 
 #define RX_BUFLEN   32
 
@@ -119,6 +119,6 @@ int main(void)
 	return 0;
 }
 
-ISR(RX_PCINTvec)
+ISR(RX_PCINTVEC)
 {
 }
