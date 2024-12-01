@@ -16,7 +16,7 @@ void serial_init(void)
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 }
 
-static void serial_write(unsigned char data)
+void serial_write(unsigned char data)
 {
 	while (!(UCSR0A & (1 << UDRE0)))
 		;

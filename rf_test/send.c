@@ -1,3 +1,5 @@
+#include <stdlib.h>
+
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -50,33 +52,32 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	SPI_PORT |= (1 << SPI_SS);
 }
 
-static inline void set_mode(uint8_t mode)
-{
-	write_reg(0x01, mode);
-	while (!read_reg(0x27))
-		;
-}
-
 static inline void radio_init(void)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
-
-	set_mode(STDBY | LISTEN_ON);
+	
+	write_reg(0x01, STDBY);
 }
 
 int main(void)
 {
+	uint8_t val;
+	char buf[100];
+
 	serial_init();
 
-	_delay_ms(5000);
+	_delay_ms(3000);
 	serial_write_line("Initializing radio");
 	radio_init();
 	serial_write_line("Initialized radio");
 
-	for (;;)
-		;
+	for (;;) {
+		val = read_reg(0x01);
+		serial_write_line(itoa(val, buf, 16));
+		_delay_ms(2000);
+	}
 
 	return 0;
 }
