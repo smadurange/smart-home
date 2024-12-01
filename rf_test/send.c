@@ -62,7 +62,7 @@ static inline void radio_send(const char *data, uint8_t n)
 	}
 	SPI_PORT |= (1 << SPI_SS);
 
-	// TX mode
+	// initiate transmission by switching to TX mode
 	write_reg(0x01, 0x0C);	
 }
 
