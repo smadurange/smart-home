@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <string.h>
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
@@ -13,9 +14,6 @@
 
 #define SPI_DDR     DDRB
 #define SPI_PORT    PORTB
-
-#define STDBY       0x04
-#define LISTEN_ON   0x40
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -43,6 +41,31 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	SPI_PORT |= (1 << SPI_SS);
 }
 
+static inline void radio_send(const char *data, uint8_t n)
+{
+	uint8_t i;
+
+	// STDBY + ListenAbort mode
+	write_reg(0x01, 0x04);
+	while ((read_reg(0x27) >> 7) != 1)
+		;
+
+	// queue data to FIFO register
+	SPI_PORT &= ~(1 << SPI_SS);
+	SPDR = 0x00 | 0x80;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	for (i = 0; i < n; i++) {
+		SPDR = data[i];
+		while (!(SPSR & (1 << SPIF)))
+			;
+	}
+	SPI_PORT |= (1 << SPI_SS);
+
+	// TX mode
+	write_reg(0x01, 0x0C);	
+}
+
 static inline void radio_init(void)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
@@ -52,15 +75,14 @@ static inline void radio_init(void)
 
 int main(void)
 {
-	volatile uint8_t val;
-	char buf[5];
+	const char *s = "hello";
 
 	serial_init();
 	radio_init();
 
 	for (;;) {
-		val = read_reg(0x01);
-		serial_write_line(itoa(val, buf, 16));
+		radio_send(s, strlen(s));
+		serial_write_line("sent data");
 		_delay_ms(2000);
 	}
 
