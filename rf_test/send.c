@@ -96,9 +96,9 @@ static inline void radio_init(void)
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
 
-	//RX_DDR &= ~(1 << RX_PIN);
-	//PCICR |= (1 << RX_PCIE);
-	//RX_PCMSK |= (1 << RX_PCINT);
+	RX_DDR &= ~(1 << RX_PIN);
+	PCICR |= (1 << RX_PCIE);
+	RX_PCMSK |= (1 << RX_PCINT);
 }
 
 int main(void)
@@ -121,4 +121,12 @@ int main(void)
 
 ISR(RX_PCINTVEC)
 {
+	uint8_t i;
+	char buf[RX_BUFLEN];
+
+	if ((read_reg(0x28) & 0x04) != 0)
+	{
+		for (i = 0; i < RX_BUFLEN; i++) {
+		}	
+	}
 }
