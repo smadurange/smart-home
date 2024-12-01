@@ -15,6 +15,7 @@
 #define SPI_PORT    PORTB
 
 #define STDBY       0x04
+#define LISTEN_ON   0x40
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -51,14 +52,13 @@ static inline void radio_init(void)
 
 int main(void)
 {
-	uint8_t val;
+	volatile uint8_t val;
 	char buf[5];
 
 	serial_init();
 	radio_init();
 
 	for (;;) {
-		write_reg(0x01, 0x04);
 		val = read_reg(0x01);
 		serial_write_line(itoa(val, buf, 16));
 		_delay_ms(2000);
