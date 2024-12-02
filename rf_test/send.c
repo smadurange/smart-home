@@ -22,11 +22,6 @@
 #define RX_PCMSK       PCMSK0
 #define RX_PCINTVEC    PCINT0_vect
 
-#define RX_BUFLEN   32
-
-static char rxbuf[RX_BUFLEN];
-static volatile uint8_t rx_ready = 0;
-
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -81,13 +76,25 @@ static inline void radio_send(const char *data, uint8_t n)
 	while ((read_reg(0x27) >> 7) != 1)
 		;
 
-	// STDBY + ListenOn mode
+	// enable ListenOn in STDBY mode
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
 
-static inline void radio_recv(char *buf, uint8_t n)
+static inline uint8_t radio_recv(char *buf, uint8_t n)
 {
 	uint8_t i;
+
+	if ((read_reg(0x28) & 0x04) != 0)
+	{
+		write_reg(0x01, 0x04);
+		while ((read_reg(0x27) >> 7) != 1)
+			;
+
+		for (i = 0; i < n; i++) {
+		}	
+	}
+
+	return i;
 }
 
 static inline void radio_init(void)
@@ -121,12 +128,10 @@ int main(void)
 
 ISR(RX_PCINTVEC)
 {
-	uint8_t i;
-	char buf[RX_BUFLEN];
+	uint8_t n;
 
-	if ((read_reg(0x28) & 0x04) != 0)
-	{
-		for (i = 0; i < RX_BUFLEN; i++) {
-		}	
-	}
+	const uint8_t buflen = 32;
+	char buf[buflen];
+	
+	n = radio_recv(buf, buflen);
 }
