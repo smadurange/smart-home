@@ -86,6 +86,8 @@ static inline uint8_t radio_recv(char *buf, uint8_t n)
 {
 	uint8_t i;
 
+	i = 0;
+
 	if ((read_reg(0x28) & 0x04))
 	{
 		write_reg(0x01, 0x04);
@@ -96,22 +98,21 @@ static inline uint8_t radio_recv(char *buf, uint8_t n)
 		SPDR = 0x00 | 0x7F;
 		while (!(SPSR & (1 << SPIF)))
 			;
-		for (i = 0; i < n; i++) {
+		while (i < n) {
 			SPDR = 0;		
 			while (!(SPSR & (1 << SPIF)))
 				;
-			buf[i] = SPDR;
+			buf[i++] = SPDR;
 		}	
 
 		SPI_PORT |= (1 << SPI_SS);
 	}
-
-	return len;
+	return i;
 }
 
 struct radio_cfg {
-	uint8_t payload_len
-}
+	uint8_t payload_len;
+};
 
 static inline void radio_init(struct radio_cfg *cfg)
 {
@@ -151,10 +152,13 @@ int main(void)
 
 ISR(RX_PCINTVEC)
 {
-	uint8_t n;
-
-	const uint8_t buflen = 32;
-	char buf[buflen];
+	uint8_t i, n;
+	char buf[PAYLOAD_LEN];
 	
-	n = radio_recv(buf, buflen);
+	n = radio_recv(buf, PAYLOAD_LEN);
+	
+	for (i = 0; i < n; i++)
+		serial_write(buf[i]);
+	serial_write('\r');
+	serial_write('\n');
 }
