@@ -10,10 +10,12 @@
 
 int main(void)
 {
+	uint8_t n;
 	struct radio_cfg cfg;
 	const char *s = "hello, world!";
 
-	cfg.payload_len = PAYLOAD_LEN;
+	n = strlen(s);
+	cfg.payload_len = n;
 
 	serial_init();
 	radio_init(&cfg);
@@ -21,7 +23,7 @@ int main(void)
 	sei();
 
 	for (;;) {
-		radio_send(s, strlen(s));
+		radio_send(s, n);
 		serial_write_line("sent data");
 		_delay_ms(2000);
 	}
