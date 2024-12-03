@@ -8,6 +8,10 @@
 #include "radio.h"
 #include "serial.h"
 
+#define LED_PIN  PB1
+#define LED_DDR  DDRB
+#define LED_PORT PORTB
+
 int main(void)
 {
 	uint8_t n;
@@ -17,6 +21,8 @@ int main(void)
 	n = strlen(s);
 	cfg.payload_len = n;
 
+	LED_DDR |= (1 << LED_PIN);
+
 	serial_init();
 	radio_init(&cfg);
 
@@ -25,7 +31,11 @@ int main(void)
 	for (;;) {
 		radio_send(s, n);
 		serial_write_line("sent data");
-		_delay_ms(2000);
+
+		LED_PORT |= (1 << LED_PIN);
+		_delay_ms(100);
+		LED_PORT &= ~(1 << LED_PIN);
+		_delay_ms(1900);
 	}
 
 	return 0;

@@ -42,6 +42,8 @@ ISR(RX_PCINTVEC)
 
 	cli();
 
+	serial_write_line("Handling pin change IRQ");
+
 	n = radio_recv(buf, PAYLOAD_LEN);
 	buf[n] = '\0';
 	
