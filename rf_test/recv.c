@@ -1,40 +1,31 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
-#include <util/delay.h>
 
-#include "rfm.h"
+#include "radio.h"
 #include "serial.h"
 
-#define TEST_LED    PB1
-#define LOCK_LED    PD6
-#define UNLOCK_LED  PD7
+#define PAYLOAD_LEN    13
 
-#define SYN    0xAA
-#define LOCK   0xB5
-#define UNLOCK 0xAE
-
-#define SIGPIN PB0
-
-static inline void led_init(void)
-{
-	DDRB  |= (1 << TEST_LED);
-	DDRD  |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
-}
-
-static inline void pcint2_init(void)
-{
-    PCICR |= (1 << PCIE2);
-    PCMSK2 |= (1 << PCINT0);
-}
+#define RX_PIN         PB0
+#define RX_DDR         DDRB
+#define RX_PORT        PORTB
+#define RX_PCIE        PCIE0
+#define RX_PCINT       PCINT0
+#define RX_PCMSK       PCMSK0
+#define RX_PCINTVEC    PCINT0_vect
 
 int main(void)
 {
-	DDRB &= ~(1 << SIGPIN);
-	PORTB &= ~(1 << SIGPIN);
+	struct radio_cfg cfg;
 
-	led_init();
+	cfg.payload_len = PAYLOAD_LEN;
+
+	RX_DDR &= ~(1 << RX_PIN);
+	PCICR |= (1 << RX_PCIE);
+	RX_PCMSK |= (1 << RX_PCINT);
+
 	serial_init();
-	pcint2_init();
+	radio_init(&cfg);
 
 	sei();
 
@@ -44,19 +35,20 @@ int main(void)
 	return 0;
 }
 
-ISR(PCINT2_vect)
+ISR(RX_PCINTVEC)
 {
-	char *s;
-	uint8_t buf[2], n;	
+	uint8_t i, n;
+	char buf[PAYLOAD_LEN + 1];
 
-	n = rfm_recvfrom(0x00, buf, 2);
+	cli();
 
-	if (buf[1] == LOCK)
-		s = "LOCK";
-	else if (buf[1] == UNLOCK)
-		s = "UNLOCK";
-	else
-		s = "Garbage";
+	n = radio_recv(buf, PAYLOAD_LEN);
+	buf[n] = '\0';
 	
-	serial_write_line(s);
+	for (i = 0; i < n; i++)
+		serial_write(buf[i]);
+	serial_write('\r');
+	serial_write('\n');
+
+	sei();
 }
