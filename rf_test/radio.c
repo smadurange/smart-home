@@ -89,7 +89,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 				;
 			buf[i++] = SPDR;
 		}	
-
 		SPI_PORT |= (1 << SPI_SS);
 	}
 	return i;

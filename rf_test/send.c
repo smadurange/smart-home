@@ -8,13 +8,11 @@
 #include "radio.h"
 #include "serial.h"
 
-#define PAYLOAD_LEN    13
-
 int main(void)
 {
 	struct radio_cfg cfg;
-
 	const char *s = "hello, world!";
+
 	cfg.payload_len = PAYLOAD_LEN;
 
 	serial_init();
