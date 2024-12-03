@@ -39,7 +39,7 @@ void radio_send(const char *data, uint8_t n)
 {
 	uint8_t i;
 
-	// STDBY + ListenAbort mode
+	// STDBY + ListenAbort
 	write_reg(0x01, 0x04);
 	while ((read_reg(0x27) >> 7) != 1)
 		;
@@ -63,7 +63,7 @@ void radio_send(const char *data, uint8_t n)
 	while ((read_reg(0x27) >> 7) != 1)
 		;
 
-	// enable ListenOn in STDBY mode
+	// ListenOn
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
 
@@ -102,6 +102,10 @@ void radio_init(struct radio_cfg *cfg)
 
 	if (cfg->payload_len > 0)
 		write_reg(0x38, cfg->payload_len);
+
+	// enable power amplifiers PA1 and PA2 for transmission
+	write_reg(0x13, 0x0F);
+	write_reg(0x11, ((read_reg(0x11) & 0x1F) | 0x60));
 }
 
 
