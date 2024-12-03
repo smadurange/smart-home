@@ -7,12 +7,12 @@
 
 #include "serial.h"
 
-#define SPI_SS      PB2
-#define SPI_SCK     PB5
-#define SPI_MISO    PB4
-#define SPI_MOSI    PB3
-#define SPI_DDR     DDRB
-#define SPI_PORT    PORTB
+#define SPI_SS         PB2
+#define SPI_SCK        PB5
+#define SPI_MISO       PB4
+#define SPI_MOSI       PB3
+#define SPI_DDR        DDRB
+#define SPI_PORT       PORTB
 
 #define RX_PIN         PB0
 #define RX_DDR         DDRB
@@ -21,6 +21,8 @@
 #define RX_PCINT       PCINT0
 #define RX_PCMSK       PCMSK0
 #define RX_PCINTVEC    PCINT0_vect
+
+#define PAYLOAD_LEN    32
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -84,24 +86,41 @@ static inline uint8_t radio_recv(char *buf, uint8_t n)
 {
 	uint8_t i;
 
-	if ((read_reg(0x28) & 0x04) != 0)
+	if ((read_reg(0x28) & 0x04))
 	{
 		write_reg(0x01, 0x04);
 		while ((read_reg(0x27) >> 7) != 1)
 			;
 
+		SPI_PORT &= ~(1 << SPI_SS);
+		SPDR = 0x00 | 0x7F;
+		while (!(SPSR & (1 << SPIF)))
+			;
 		for (i = 0; i < n; i++) {
+			SPDR = 0;		
+			while (!(SPSR & (1 << SPIF)))
+				;
+			buf[i] = SPDR;
 		}	
+
+		SPI_PORT |= (1 << SPI_SS);
 	}
 
-	return i;
+	return len;
 }
 
-static inline void radio_init(void)
+struct radio_cfg {
+	uint8_t payload_len
+}
+
+static inline void radio_init(struct radio_cfg *cfg)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
+
+	if (cfg->payload_len > 0)
+		write_reg(0x38, cfg->payload_len);
 
 	RX_DDR &= ~(1 << RX_PIN);
 	PCICR |= (1 << RX_PCIE);
@@ -110,10 +129,14 @@ static inline void radio_init(void)
 
 int main(void)
 {
+	struct radio_cfg cfg;
+
 	const char *s = "hello";
 
+	cfg.payload_len = PAYLOAD_LEN;
+
 	serial_init();
-	radio_init();
+	radio_init(&cfg);
 
 	sei();
 
