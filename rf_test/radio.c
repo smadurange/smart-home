@@ -63,6 +63,9 @@ void radio_send(const char *data, uint8_t n)
 	while ((read_reg(0x27) >> 7) != 1)
 		;
 
+	// todo: do a more reliable check
+	_delay_ms(5);
+
 	// ListenOn
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
