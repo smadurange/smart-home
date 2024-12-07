@@ -1,7 +1,10 @@
+#include <stdlib.h>
+
 #include <avr/io.h>
 #include <util/delay.h>
 
 #include "radio.h"
+#include "serial.h"
 
 #define SPI_SS          PB2
 #define SPI_SCK         PB5
@@ -103,22 +106,36 @@ void radio_init(struct radio_cfg *cfg)
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
-
-	// standby
+	
 	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) >> 7) != 1)
-		;
 
-	// enable power amplifiers PA1 and PA2
-	write_reg(0x13, 0x0F);
-	write_reg(0x11, ((read_reg(0x11) & 0x1F) | 0x60));
+	// carrier freq: 434MHz
+	write_reg(0x07, 0x6C);
+	write_reg(0x08, 0x80);
+	write_reg(0x09, 0x00);
 
-	// packet format
+	write_reg(0x19, (0x40 | 0x02));
+
+	// DIO mappings
+	write_reg(0x25, 0x40);
+	write_reg(0x26, 0x07);
+
+	write_reg(0x28, 0x10);
+
+	write_reg(0x29, 0xDC);
+
+	// packet config
 	if (cfg->payload_len > 0) {
 		write_reg(0x37, 0x10);
 		write_reg(0x38, cfg->payload_len);
 	}
-	
+
+	// rx delay
+	write_reg(0x3D, (0x10 | 0x02 | 0x00));
+
+	// run DAGC
+	write_reg(0x6F, 0x30);
+
 	// start listening
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
