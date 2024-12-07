@@ -139,6 +139,7 @@ void radio_init(struct radio_cfg *cfg)
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
 	
+	// todo: do we need this?
 	do {
 		write_reg(0x2F, 0xAA);
 	} while (read_reg(0x2F) != 0xAA);
