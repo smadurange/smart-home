@@ -1,13 +1,14 @@
 #include <avr/io.h>
+#include <util/delay.h>
 
 #include "radio.h"
 
-#define SPI_SS         PB2
-#define SPI_SCK        PB5
-#define SPI_MISO       PB4
-#define SPI_MOSI       PB3
-#define SPI_DDR        DDRB
-#define SPI_PORT       PORTB
+#define SPI_SS          PB2
+#define SPI_SCK         PB5
+#define SPI_MISO        PB4
+#define SPI_MOSI        PB3
+#define SPI_DDR         DDRB
+#define SPI_PORT        PORTB
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -70,11 +71,11 @@ void radio_send(const char *data, uint8_t n)
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
 
-uint8_t radio_recv(char *buf, uint8_t buflen)
+uint8_t radio_recv(char *buf, uint8_t n)
 {
-	uint8_t i, n, readlen;
+	uint8_t read_len;
 
-	readlen = 0;
+	read_len = 0;
 
 	if ((read_reg(0x28) & 0x04))
 	{
@@ -88,22 +89,16 @@ uint8_t radio_recv(char *buf, uint8_t buflen)
 		while (!(SPSR & (1 << SPIF)))
 			;
 
-		SPDR = 0;		
-		while (!(SPSR & (1 << SPIF)))
-			;
-		n = SPDR;
-
-		for (i = 0; i < n; i++) {
+		while (read_len < n) {
 			SPDR = 0;		
 			while (!(SPSR & (1 << SPIF)))
 				;
-			if (readlen < buflen)
-				buf[readlen++] = SPDR;
+			buf[read_len++] = SPDR;
 		}	
 
 		SPI_PORT |= (1 << SPI_SS);
 	}
-	return readlen;
+	return read_len;
 }
 
 void radio_init(struct radio_cfg *cfg)
@@ -120,7 +115,13 @@ void radio_init(struct radio_cfg *cfg)
 	// enable power amplifiers PA1 and PA2
 	write_reg(0x13, 0x0F);
 	write_reg(0x11, ((read_reg(0x11) & 0x1F) | 0x60));
+
+	// packet format
+	if (cfg->payload_len > 0) {
+		write_reg(0x37, 0x10);
+		write_reg(0x38, cfg->payload_len);
+	}
 	
-	// enable ListenOn
+	// start listening
 	write_reg(0x01, (read_reg(0x01) | 0x40));
 }

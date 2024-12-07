@@ -4,7 +4,7 @@
 #include "radio.h"
 #include "serial.h"
 
-#define BUFLEN         61
+#define PAYLOAD_LEN    13
 
 #define RX_PIN         PB0
 #define RX_DDR         DDRB
@@ -38,13 +38,13 @@ int main(void)
 ISR(RX_PCINTVEC)
 {
 	uint8_t i, n;
-	char buf[BUFLEN + 1];
+	char buf[PAYLOAD_LEN + 1];
 
 	cli();
 
 	serial_write_line("Handling pin change IRQ");
 
-	n = radio_recv(buf, BUFLEN);
+	n = radio_recv(buf, PAYLOAD_LEN);
 	buf[n] = '\0';
 	
 	for (i = 0; i < n; i++)
