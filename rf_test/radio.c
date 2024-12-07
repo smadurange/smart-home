@@ -6,14 +6,50 @@
 #include "radio.h"
 #include "serial.h"
 
-#define SPI_SS          PB2
-#define SPI_SCK         PB5
-#define SPI_MISO        PB4
-#define SPI_MOSI        PB3
-#define SPI_DDR         DDRB
-#define SPI_PORT        PORTB
+#define SPI_SS              PB2
+#define SPI_SCK             PB5
+#define SPI_MISO            PB4
+#define SPI_MOSI            PB3
+#define SPI_DDR            DDRB
+#define SPI_PORT          PORTB
 
-#define MAX_POWER_LEVEL    23
+#define OP_MODE_SLEEP      0x00
+#define OP_MODE_STDBY      0x04
+#define OP_MODE_FS         0x08
+#define OP_MODE_RX         0x10
+#define OP_MODE_TX         0x0C
+
+#define MAX_POWER_LEVEL      23
+
+static inline void set_power_level(uint8_t pwl)
+{
+	uint8_t pa_mask;
+
+	if (pwl < 16) {
+		pwl += 16;
+		pa_mask = 0x40;
+	} else {
+		pwl += pwl < 20 ? 10 : 8;
+		pa_mask = 0x40 | 0x20;
+	}
+
+	write_reg(0x5A, 0x5D);
+	write_reg(0x5C, 0x7C);
+	write_reg(0x11, (pa_mask | pwl));
+}
+
+static inline set_mode(uint8_t mode)
+{
+	write_reg(0x01, ((read_reg(0x01) & 0xE3) | mode));
+
+	switch (mode) {
+	case OP_MODE_TX:
+		write_reg(0x5A, 0x5D);
+		write_reg(0x5C, 0x7C);
+		break;
+	case OP_MODE_RX:
+	}
+}
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -103,34 +139,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	return read_len;
 }
 
-static inline void set_high_power_pa(uint8_t enable)
-{
-	write_reg(0x5A, (enable ? 0x5D : 0x55));
-	write_reg(0x5C, (enable ? 0x7C : 0x70));
-}
-
-static inline void set_power_level(uint8_t pwl)
-{
-	uint8_t pa_mask;
-
-	if (pwl < 16) {
-		pwl += 16;
-		pa_mask = 0x40;
-	} else {
-		pwl += pwl < 20 ? 10 : 8;
-		pa_mask = 0x40 | 0x20;
-	}
-
-	set_high_power_pa(1);
-	write_reg(0x11, (pa_mask | pwl));
-}
-
-void radio_high_power(void)
-{
-	write_reg(0x13, 0x0F);
-	set_power_level(MAX_POWER_LEVEL);
-}
-
 void radio_init(struct radio_cfg *cfg)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
@@ -185,4 +193,12 @@ void radio_init(struct radio_cfg *cfg)
 
 	// disable encryption
 	write_reg(0x3D, ((read_reg(0x3D) & 0xFE) | 0x00));
+
+	// enable high power amps
+	write_reg(0x13, 0x0F);
+	set_power_level(MAX_POWER_LEVEL);
+
+	write_reg(0x01, ((read_reg(0x01) & 0xE3) | 0x04));
+	while (!(read_reg(0x27) & 0x80))
+		;
 }
