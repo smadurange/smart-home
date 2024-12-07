@@ -1,3 +1,29 @@
+// **********************************************************************************
+// Driver definition for HopeRF RFM69W/RFM69HW/RFM69CW/RFM69HCW, Semtech SX1231/1231H
+// **********************************************************************************
+// Copyright LowPowerLab LLC 2018, https://www.LowPowerLab.com/contact
+// **********************************************************************************
+// License
+// **********************************************************************************
+// This program is free software; you can redistribute it 
+// and/or modify it under the terms of the GNU General    
+// Public License as published by the Free Software       
+// Foundation; either version 3 of the License, or        
+// (at your option) any later version.                    
+//                                                        
+// This program is distributed in the hope that it will   
+// be useful, but WITHOUT ANY WARRANTY; without even the  
+// implied warranty of MERCHANTABILITY or FITNESS FOR A   
+// PARTICULAR PURPOSE. See the GNU General Public        
+// License for more details.                              
+//                                                        
+// Licence can be viewed at                               
+// http://www.gnu.org/licenses/gpl-3.0.txt
+//
+// Please maintain this license information along with authorship
+// and copyright notices in any redistribution of this code
+// **********************************************************************************
+
 #include <stdlib.h>
 
 #include <avr/io.h>
@@ -58,9 +84,13 @@ static inline void set_power_level(uint8_t pwl)
 	write_reg(0x11, (pa_mask | pwl));
 }
 
-void radio_send(const char *data, uint8_t n)
+void radio_sendto(uint8_t addr, const char *data, uint8_t n)
 {
 	uint8_t i;
+
+	// force the receiver into WAIT mode
+	write_reg(0x3D, ((read_reg(0x3D) & 0xFB) | 0x04));
+
 
 	// STDBY + ListenAbort
 	write_reg(0x01, 0x04);
