@@ -15,36 +15,6 @@
 
 #define MAX_POWER_LEVEL      23
 
-static inline void set_power_level(uint8_t pwl)
-{
-	uint8_t pa_mask;
-
-	if (pwl < 16) {
-		pwl += 16;
-		pa_mask = 0x40;
-	} else {
-		pwl += pwl < 20 ? 10 : 8;
-		pa_mask = 0x40 | 0x20;
-	}
-
-	write_reg(0x5A, 0x5D);
-	write_reg(0x5C, 0x7C);
-	write_reg(0x11, (pa_mask | pwl));
-}
-
-static inline set_mode(uint8_t mode)
-{
-	write_reg(0x01, ((read_reg(0x01) & 0xE3) | mode));
-
-	switch (mode) {
-	case OP_MODE_TX:
-		write_reg(0x5A, 0x5D);
-		write_reg(0x5C, 0x7C);
-		break;
-	case OP_MODE_RX:
-	}
-}
-
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -69,6 +39,23 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	while (!(SPSR & (1 << SPIF)))
 		;
 	SPI_PORT |= (1 << SPI_SS);
+}
+
+static inline void set_power_level(uint8_t pwl)
+{
+	uint8_t pa_mask;
+
+	if (pwl < 16) {
+		pwl += 16;
+		pa_mask = 0x40;
+	} else {
+		pwl += pwl < 20 ? 10 : 8;
+		pa_mask = 0x40 | 0x20;
+	}
+
+	write_reg(0x5A, 0x5D);
+	write_reg(0x5C, 0x7C);
+	write_reg(0x11, (pa_mask | pwl));
 }
 
 void radio_send(const char *data, uint8_t n)
