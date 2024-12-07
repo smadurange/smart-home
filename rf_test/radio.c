@@ -103,12 +103,26 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	return read_len;
 }
 
-void set_power_level(uint8_t pwl)
+static inline void set_high_power_pa(uint8_t enable)
 {
-	uint8_t pa;
+	write_reg(0x5A, (enable ? 0x5D : 0x55));
+	write_reg(0x5C, (enable ? 0x7C : 0x70));
+}
 
-	if (pwl < 16)
+static inline void set_power_level(uint8_t pwl)
+{
+	uint8_t pa_mask;
+
+	if (pwl < 16) {
 		pwl += 16;
+		pa_mask = 0x40;
+	} else {
+		pwl += pwl < 20 ? 10 : 8;
+		pa_mask = 0x40 | 0x20;
+	}
+
+	set_high_power_pa(1);
+	write_reg(0x11, (pa_mask | pwl));
 }
 
 void radio_high_power(void)
@@ -125,11 +139,11 @@ void radio_init(struct radio_cfg *cfg)
 	
 	do {
 		write_reg(0x2F, 0xAA);
-	} while (read_reg(0x2F) != 0xAA)
+	} while (read_reg(0x2F) != 0xAA);
 
 	do {
 		write_reg(0x2F, 0x55);
-	} while (read_reg(0x2F) != 0x55)
+	} while (read_reg(0x2F) != 0x55);
 
 	write_reg(0x01, 0x04);
 
