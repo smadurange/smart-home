@@ -13,6 +13,8 @@
 #define SPI_DDR         DDRB
 #define SPI_PORT        PORTB
 
+#define MAX_POWER_LEVEL    23
+
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -101,41 +103,72 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	return read_len;
 }
 
+void set_power_level(uint8_t pwl)
+{
+	uint8_t pa;
+
+	if (pwl < 16)
+		pwl += 16;
+}
+
+void radio_high_power(void)
+{
+	write_reg(0x13, 0x0F);
+	set_power_level(MAX_POWER_LEVEL);
+}
+
 void radio_init(struct radio_cfg *cfg)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
 	
+	do {
+		write_reg(0x2F, 0xAA);
+	} while (read_reg(0x2F) != 0xAA)
+
+	do {
+		write_reg(0x2F, 0x55);
+	} while (read_reg(0x2F) != 0x55)
+
 	write_reg(0x01, 0x04);
 
-	// carrier freq: 434MHz
+	write_reg(0x02, 0x00);
+
+	write_reg(0x03, 0x02);
+	write_reg(0x04, 0x40);
+
+	write_reg(0x05, 0x03);
+	write_reg(0x06, 0x33);
+
+	// carrier frequency: 433MHz
 	write_reg(0x07, 0x6C);
-	write_reg(0x08, 0x80);
+	write_reg(0x08, 0x40);
 	write_reg(0x09, 0x00);
 
-	write_reg(0x19, (0x40 | 0x02));
+	write_reg(0x19, (0x40 | 0x00 | 0x02));
 
-	// DIO mappings
+	// DIO mapping
 	write_reg(0x25, 0x40);
 	write_reg(0x26, 0x07);
-
+	
 	write_reg(0x28, 0x10);
+	
+	write_reg(0x29, 220);
+	
+	// sync value
+	write_reg(0x2E, (0x80 | 0x08));
+	write_reg(0x2F, 0x2D);
+	write_reg(0x30, cfg->network_id);
 
-	write_reg(0x29, 0xDC);
+	// packet format and FIFO thresholds
+	write_reg(0x37, (0x80 | 0x10));
+	write_reg(0x38, 66);
+	write_reg(0x3C, (0x80 | 0x0F));
+	write_reg(0x3D, 0x10);
 
-	// packet config
-	if (cfg->payload_len > 0) {
-		write_reg(0x37, 0x10);
-		write_reg(0x38, cfg->payload_len);
-	}
-
-	// rx delay
-	write_reg(0x3D, (0x10 | 0x02 | 0x00));
-
-	// run DAGC
 	write_reg(0x6F, 0x30);
 
-	// start listening
-	write_reg(0x01, (read_reg(0x01) | 0x40));
+	// disable encryption
+	write_reg(0x3D, ((read_reg(0x3D) & 0xFE) | 0x00));
 }
