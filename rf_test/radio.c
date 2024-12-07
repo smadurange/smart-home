@@ -84,7 +84,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 			;
 
 		SPI_PORT &= ~(1 << SPI_SS);
-
 		SPDR = 0x00 | 0x7F;
 		while (!(SPSR & (1 << SPIF)))
 			;
@@ -95,7 +94,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 				;
 			buf[read_len++] = SPDR;
 		}	
-
 		SPI_PORT |= (1 << SPI_SS);
 	}
 	return read_len;
