@@ -87,7 +87,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 		SPDR = 0x00 | 0x7F;
 		while (!(SPSR & (1 << SPIF)))
 			;
-
 		while (read_len < n) {
 			SPDR = 0;		
 			while (!(SPSR & (1 << SPIF)))
