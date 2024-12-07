@@ -91,6 +91,7 @@ void radio_sendto(uint8_t addr, const char *data, uint8_t n)
 	// force the receiver into WAIT mode
 	write_reg(0x3D, ((read_reg(0x3D) & 0xFB) | 0x04));
 
+	// todo: implement the rest...
 
 	// STDBY + ListenAbort
 	write_reg(0x01, 0x04);
