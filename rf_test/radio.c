@@ -13,12 +13,6 @@
 #define SPI_DDR            DDRB
 #define SPI_PORT          PORTB
 
-#define OP_MODE_SLEEP      0x00
-#define OP_MODE_STDBY      0x04
-#define OP_MODE_FS         0x08
-#define OP_MODE_RX         0x10
-#define OP_MODE_TX         0x0C
-
 #define MAX_POWER_LEVEL      23
 
 static inline void set_power_level(uint8_t pwl)
