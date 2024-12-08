@@ -41,6 +41,8 @@
 
 #define MAX_POWER_LEVEL      23
 
+static uint8_t payload_len = 0;
+
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -67,6 +69,11 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	SPI_PORT |= (1 << SPI_SS);
 }
 
+static inline uint8_t rssi(void)
+{
+	return (-1 * (read_reg(0x24) >> 1));
+}
+
 static inline void set_power_level(uint8_t pwl)
 {
 	uint8_t pa_mask;
@@ -88,15 +95,16 @@ void radio_sendto(uint8_t addr, const char *data, uint8_t n)
 {
 	uint8_t i;
 
-	// force the receiver into WAIT mode
+	// force-stop rx
 	write_reg(0x3D, ((read_reg(0x3D) & 0xFB) | 0x04));
+	//while (((read_reg(0x01) & 0x1C) == 0x10) && payload_len == 0 && rssi() < -90)
+	//	write_reg(0x01, 0x04);	
+
+	write_reg(0x01, 0x04);
+	while (!(read_reg(0x27) & 0x80))
+		;
 
 	// todo: implement the rest...
-
-	// STDBY + ListenAbort
-	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) >> 7) != 1)
-		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x80;
