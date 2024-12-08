@@ -41,7 +41,6 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 
 void radio_send(const char *data, uint8_t n)
 {
-	char s[3];
 	uint8_t i;
 
 	write_reg(0x01, 0x04);	

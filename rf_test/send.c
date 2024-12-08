@@ -30,6 +30,7 @@ int main(void)
 
 	for (;;) {
 		radio_send(s, n);
+		serial_write_line("sent");
 		LED_PORT |= (1 << LED_PIN);
 		_delay_ms(100);
 		LED_PORT &= ~(1 << LED_PIN);
