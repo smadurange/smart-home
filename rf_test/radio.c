@@ -108,5 +108,5 @@ void radio_init(const struct radio_cfg *cfg)
 
 	// sync config
 	write_reg(0x2E, 0x80);
-	write_reg(0x2F, cfg->network_id);
+	write_reg(0x2F, cfg->netid);
 }
