@@ -63,8 +63,6 @@ void radio_send(const char *data, uint8_t n)
 	while (!(read_reg(0x28) & 0x08))
 		;
 
-	serial_write_line("sending data");
-
 	write_reg(0x01, 0x04);
 	while ((read_reg(0x27) & 80))
 		;
@@ -126,7 +124,7 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x39, cfg->nodeid);
 
 	// fifo config
-	write_reg(0x0F, 0x8F);
+	write_reg(0x3C, 0x8F);
 
 	// DAGC config
 	write_reg(0x6F, 0x30);
