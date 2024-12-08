@@ -44,7 +44,7 @@ void radio_send(const char *data, uint8_t n)
 	uint8_t i;
 
 	write_reg(0x01, 0x04);	
-	while ((read_reg(0x27) & 80))
+	while ((read_reg(0x27) & 0x80))
 		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -63,7 +63,7 @@ void radio_send(const char *data, uint8_t n)
 		;
 
 	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) & 80))
+	while ((read_reg(0x27) & 0x80))
 		;
 }
 
