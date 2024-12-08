@@ -12,6 +12,8 @@
 #define LED_DDR  DDRB
 #define LED_PORT PORTB
 
+#define NODE_ID  2
+
 int main(void)
 {
 	uint8_t n;
@@ -19,6 +21,7 @@ int main(void)
 	const char *s = "hello, world!";
 
 	n = strlen(s);
+	cfg.node_id = NODE_ID;
 	cfg.payload_len = n;
 
 	LED_DDR |= (1 << LED_PIN);
@@ -29,7 +32,7 @@ int main(void)
 	sei();
 
 	for (;;) {
-		radio_send(s, n);
+		radio_sendto(1, s, n);
 		serial_write_line("sent data");
 
 		LED_PORT |= (1 << LED_PIN);

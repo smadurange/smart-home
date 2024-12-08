@@ -39,8 +39,10 @@
 #define SPI_DDR            DDRB
 #define SPI_PORT          PORTB
 
+#define MAX_PAYLOAD_LEN      61
 #define MAX_POWER_LEVEL      23
 
+static uint8_t node_id = 0;
 static uint8_t payload_len = 0;
 
 static inline uint8_t read_reg(uint8_t reg)
@@ -95,19 +97,34 @@ void radio_sendto(uint8_t addr, const char *data, uint8_t n)
 {
 	uint8_t i;
 
+	if (n > MAX_PAYLOAD_LEN)
+		n = MAX_PAYLOAD_LEN;
+
 	// force-stop rx
 	write_reg(0x3D, ((read_reg(0x3D) & 0xFB) | 0x04));
-	//while (((read_reg(0x01) & 0x1C) == 0x10) && payload_len == 0 && rssi() < -90)
-	//	write_reg(0x01, 0x04);	
-
-	write_reg(0x01, 0x04);
-	while (!(read_reg(0x27) & 0x80))
+	while (((read_reg(0x01) & 0x1C) == 0x10) && payload_len == 0 && rssi() < -90)
+		// todo: read data in fifo
 		;
 
-	// todo: implement the rest...
+	write_reg(0x01, 0x04);	
+	while (!(read_reg(0x27) & 80))
+		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x80;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	SPDR = n + 3;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	SPDR = addr;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	SPDR = node_id;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	// ctl byte
+	SPDR = 0;
 	while (!(SPSR & (1 << SPIF)))
 		;
 	for (i = 0; i < n; i++) {
@@ -117,19 +134,18 @@ void radio_sendto(uint8_t addr, const char *data, uint8_t n)
 	}
 	SPI_PORT |= (1 << SPI_SS);
 
-	write_reg(0x01, 0x0C);
-	while (!read_reg(0x28))
+	write_reg(0x01, ((read_reg(0x01) & 0xE3) | 0x0C));
+	write_reg(0x5A, 0x5D);
+	write_reg(0x5C, 0x7C);
+
+	while (!(read_reg(0x28) & 0x08))
 		;
 
-	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) >> 7) != 1)
+	serial_write_line("146");
+
+	write_reg(0x01, ((read_reg(0x01) & 0xE3) | 0x04));
+	while (!(read_reg(0x27) & 0x80))
 		;
-
-	// todo: do a more reliable check
-	_delay_ms(10);
-
-	// ListenOn
-	write_reg(0x01, (read_reg(0x01) | 0x40));
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
@@ -161,6 +177,8 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 void radio_init(struct radio_cfg *cfg)
 {
+	node_id = cfg->node_id;
+
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
