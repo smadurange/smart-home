@@ -58,6 +58,8 @@ void radio_send(const char *data, uint8_t n)
 	}
 	SPI_PORT |= (1 << SPI_SS);
 
+	// todo: high power settings?
+
 	write_reg(0x01, 0x0C);
 	while (!(read_reg(0x28) & 0x08))
 		;

@@ -19,6 +19,7 @@ int main(void)
 	const char *s = "hello, world!";
 
 	n = strlen(s);
+
 	cfg.netid = 0x01;
 	cfg.nodeid = 0x02;
 	cfg.payload_len = n;
