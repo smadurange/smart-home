@@ -32,7 +32,7 @@ int main(void)
 	sei();
 
 	for (;;) {
-		radio_sendto(1, s, n);
+		radio_send(s, n);
 		serial_write_line("sent data");
 
 		LED_PORT |= (1 << LED_PIN);
