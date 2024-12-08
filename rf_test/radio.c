@@ -41,10 +41,11 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 
 void radio_send(const char *data, uint8_t n)
 {
+	char s[3];
 	uint8_t i;
 
 	write_reg(0x01, 0x04);	
-	while (!(read_reg(0x27) & 80))
+	while ((read_reg(0x27) & 80))
 		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -58,7 +59,15 @@ void radio_send(const char *data, uint8_t n)
 	}
 	SPI_PORT |= (1 << SPI_SS);
 
-	// todo: wait for tx complete
+	write_reg(0x01, 0x0C);
+	while (!(read_reg(0x28) & 0x08))
+		;
+
+	serial_write_line("sending data");
+
+	write_reg(0x01, 0x04);
+	while ((read_reg(0x27) & 80))
+		;
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
@@ -111,14 +120,14 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x2F, cfg->netid);
 
 	// packet config
-	write_config(0x37, 0x30);
-	write_config(0x38, cfg->payload_len);
+	write_reg(0x37, 0x30);
+	write_reg(0x38, cfg->payload_len);
 
-	write_config(0x39, cfg->nodeid);
+	write_reg(0x39, cfg->nodeid);
 
 	// fifo config
 	write_reg(0x0F, 0x8F);
 
 	// DAGC config
-	write_config(0x6F, 0x30);
+	write_reg(0x6F, 0x30);
 }

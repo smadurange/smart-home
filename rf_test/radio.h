@@ -4,8 +4,8 @@
 #include <stdint.h>
 
 struct radio_cfg {
-	uint8_t node_id;
-	uint8_t network_id;
+	uint8_t netid;
+	uint8_t nodeid;
 	uint8_t payload_len;
 };
 
