@@ -109,4 +109,16 @@ void radio_init(const struct radio_cfg *cfg)
 	// sync config
 	write_reg(0x2E, 0x80);
 	write_reg(0x2F, cfg->netid);
+
+	// packet config
+	write_config(0x37, 0x30);
+	write_config(0x38, cfg->payload_len);
+
+	write_config(0x39, cfg->nodeid);
+
+	// fifo config
+	write_reg(0x0F, 0x8F);
+
+	// DAGC config
+	write_config(0x6F, 0x30);
 }
