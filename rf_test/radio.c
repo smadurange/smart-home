@@ -96,6 +96,15 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	return read_len;
 }
 
+void radio_listen(void)
+{
+	write_reg(0x01, (read_reg(0x01) & 0xE3) | 0x10);
+	while ((read_reg(0x27) & 0x80))
+		;
+
+	// todo: go to low power mode
+}
+
 void radio_init(const struct radio_cfg *cfg)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
