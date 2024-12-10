@@ -75,24 +75,21 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	read_len = 0;
 
-	if ((read_reg(0x28) & 0x04))
-	{
-		write_reg(0x01, 0x04);
-		while ((read_reg(0x27) >> 7) != 1)
-			;
+	write_reg(0x01, 0x04);
+	while ((read_reg(0x27) & 0x80))
+		;
 
-		SPI_PORT &= ~(1 << SPI_SS);
-		SPDR = 0x00 | 0x7F;
+	SPI_PORT &= ~(1 << SPI_SS);
+	SPDR = 0x00 | 0x7F;
+	while (!(SPSR & (1 << SPIF)))
+			;
+	while (read_len < n) {
+		SPDR = 0;		
 		while (!(SPSR & (1 << SPIF)))
 			;
-		while (read_len < n) {
-			SPDR = 0;		
-			while (!(SPSR & (1 << SPIF)))
-				;
-			buf[read_len++] = SPDR;
-		}	
-		SPI_PORT |= (1 << SPI_SS);
-	}
+		buf[read_len++] = SPDR;
+	}	
+	SPI_PORT |= (1 << SPI_SS);
 	return read_len;
 }
 
