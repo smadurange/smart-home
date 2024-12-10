@@ -23,7 +23,6 @@ static inline uint8_t read_reg(uint8_t reg)
 	while (!(SPSR & (1 << SPIF)))
 		;
 	SPI_PORT |= (1 << SPI_SS);
-
 	return SPDR;
 }
 
@@ -82,7 +81,7 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x7F;
 	while (!(SPSR & (1 << SPIF)))
-			;
+		;
 	while (read_len < n) {
 		SPDR = 0;		
 		while (!(SPSR & (1 << SPIF)))
