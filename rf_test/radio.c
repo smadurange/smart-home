@@ -119,9 +119,8 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x2F, cfg->netid);
 
 	// packet config
-	write_reg(0x37, 0x30);
+	write_reg(0x37, 0x10);
 	write_reg(0x38, cfg->payload_len);
-
 	write_reg(0x39, cfg->nodeid);
 
 	// fifo config
