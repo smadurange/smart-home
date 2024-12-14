@@ -1,4 +1,3 @@
-#include <string.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
@@ -16,7 +15,7 @@
 #define MAX_PAYLOAD_LEN 60
 
 static char *s = "hello, world!";
-static uint8_t slen = strlen(s);
+static uint8_t slen = 13;
 
 int main(void)
 {

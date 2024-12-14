@@ -38,18 +38,13 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	SPI_PORT |= (1 << SPI_SS);
 }
 
-static inline void standby(void)
-{
-	write_reg(0x01, 0x04);	
-	while (!(read_reg(0x27) & 0x80))
-		;
-}
-
 void radio_send(const char *data, uint8_t n)
 {
 	uint8_t i;
 
-	standby();
+	write_reg(0x01, 0x04);	
+	while (!(read_reg(0x27) & 0x80))
+		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x80;
@@ -69,7 +64,9 @@ void radio_send(const char *data, uint8_t n)
 	while (!(read_reg(0x28) & 0x08))
 		;
 
-	standby();
+	write_reg(0x01, 0x04);	
+	while (!(read_reg(0x27) & 0x80))
+		;
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
@@ -78,7 +75,9 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	read_len = 0;
 
-	standby();
+	write_reg(0x01, 0x04);	
+	while (!(read_reg(0x27) & 0x80))
+		;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x7F;
