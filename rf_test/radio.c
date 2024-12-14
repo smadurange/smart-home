@@ -38,18 +38,24 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 	SPI_PORT |= (1 << SPI_SS);
 }
 
+static inline void standby(void)
+{
+	write_reg(0x01, 0x04);	
+	while (!(read_reg(0x27) & 0x80))
+		;
+}
+
 void radio_send(const char *data, uint8_t n)
 {
 	uint8_t i;
 
-	write_reg(0x01, 0x04);	
-	while ((read_reg(0x27) & 0x80))
-		;
+	standby();
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x80;
 	while (!(SPSR & (1 << SPIF)))
 		;
+
 	for (i = 0; i < n; i++) {
 		SPDR = data[i];
 		while (!(SPSR & (1 << SPIF)))
@@ -63,9 +69,7 @@ void radio_send(const char *data, uint8_t n)
 	while (!(read_reg(0x28) & 0x08))
 		;
 
-	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) & 0x80))
-		;
+	standby();
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
@@ -74,9 +78,7 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	read_len = 0;
 
-	write_reg(0x01, 0x04);
-	while ((read_reg(0x27) & 0x80))
-		;
+	standby();
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0x00 | 0x7F;
@@ -95,7 +97,7 @@ uint8_t radio_recv(char *buf, uint8_t n)
 void radio_listen(void)
 {
 	write_reg(0x01, (read_reg(0x01) & 0xE3) | 0x10);
-	while ((read_reg(0x27) & 0x80))
+	while (!(read_reg(0x27) & 0x80))
 		;
 
 	// todo: go to low power mode
