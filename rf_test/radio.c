@@ -316,7 +316,6 @@ static inline void set_mode_stdby(void)
 			write_reg(RH_RF69_REG_5A_TESTPA1, RH_RF69_TESTPA1_NORMAL);
 			write_reg(RH_RF69_REG_5C_TESTPA2, RH_RF69_TESTPA2_NORMAL);
 		}
-
 		set_mode(RH_RF69_OPMODE_MODE_STDBY);
 		mode = STDBY;
 	} 
@@ -393,7 +392,7 @@ void radio_init(const struct radio_cfg *cfg)
 	SPCR |= (1 << SPE) | (1 << MSTR);
 
 	set_mode_stdby();
-
+	
 	// LNA, AFC and RXBW settings
 	write_reg(0x18, 0x88);
 	write_reg(0x19, 0x55);
