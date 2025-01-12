@@ -148,9 +148,10 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x06, 0x00);
 	write_reg(0x19, 0xE0);
 	write_reg(0x1A, 0xE0);
+
 	write_reg(0x37, 0x50);
 	write_reg(0x38, cfg->payload_len);
-	// write_reg(0x39, cfg->nodeid);
+	write_reg(0x39, cfg->nodeid);
 	
 	// DIO mappings: IRQ on DIO0
 	write_reg(0x25, 0x40);
