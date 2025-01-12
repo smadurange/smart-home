@@ -66,10 +66,6 @@ static inline void set_mode(uint8_t mode)
 	}
 }
 
-static inline void set_mode_stdby(void)
-{
-}
-
 void radio_send(const char *data, uint8_t n)
 {
 	uint8_t i;
@@ -141,12 +137,21 @@ void radio_init(const struct radio_cfg *cfg)
 	SPCR |= (1 << SPE) | (1 << MSTR);
 
 	set_mode(STDBY);
-	
-	// LNA, AFC and RXBW settings
-	write_reg(0x18, 0x88);
-	write_reg(0x19, 0x55);
-	write_reg(0x1A, 0x8B);
 
+	// modem config: 
+	// GFSK (BT=1.0), no Manchester, whitening, CRC, no address filtering 
+	// AFC BW == RX BW == 2 x bit rate
+	write_reg(0x02, 0x01);
+	write_reg(0x03, 0x00);
+	write_reg(0x04, 0x80);
+	write_reg(0x05, 0x10);
+	write_reg(0x06, 0x00);
+	write_reg(0x19, 0xE0);
+	write_reg(0x1A, 0xE0);
+	write_reg(0x37, 0x50);
+	write_reg(0x38, cfg->payload_len);
+	// write_reg(0x39, cfg->nodeid);
+	
 	// DIO mappings: IRQ on DIO0
 	write_reg(0x25, 0x40);
 	write_reg(0x26, 0x07);
@@ -158,10 +163,6 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x2E, 0x80);
 	write_reg(0x2F, cfg->netid);
 
-	// packet config
-	write_reg(0x37, 0x10);
-	write_reg(0x38, cfg->payload_len);
-	write_reg(0x39, cfg->nodeid);
 
 	// fifo config
 	write_reg(0x3C, 0x8F);
