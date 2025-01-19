@@ -17,6 +17,7 @@
 #define RF69_OPMODE_TX                 0x0C
 #define RF69_OPMODE_STDBY              0x04
 
+#define RF69_REG_FIFO                  0x01
 #define RF69_REG_OPMODE                0x01
 #define RF69_REG_PALEVEL               0x11
 #define RF69_REG_TESTPA1               0x5A
@@ -119,11 +120,10 @@ void radio_send(const char *data, uint8_t n)
 	uint8_t i;
 
 	set_mode(RF69_OPMODE_STDBY);
-	cli();
 
 	SPI_PORT &= ~(1 << SPI_SS);
 
-	SPDR = 0x00 | 0x80;
+	SPDR = RF69_REG_FIFO | 0x80;
 	while (!(SPSR & (1 << SPIF)))
 		;
 
@@ -135,11 +135,10 @@ void radio_send(const char *data, uint8_t n)
 
 	SPI_PORT |= (1 << SPI_SS);
 
-	sei();
 	set_mode(RF69_OPMODE_TX);
-
 	while (!(read_reg(RF69_REG_IRQFLAGS2) & 0x08))
 		;
+
 	set_mode(RF69_OPMODE_STDBY);
 }
 
@@ -149,23 +148,21 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	read_len = 0;
 
-	
-
-	write_reg(0x01, 0x04);	
-	while (!(read_reg(0x27) & 0x80))
-		;
-
 	SPI_PORT &= ~(1 << SPI_SS);
-	SPDR = 0x00 | 0x7F;
+
+	SPDR = RF69_REG_FIFO | 0x7F;
 	while (!(SPSR & (1 << SPIF)))
 		;
+
 	while (read_len < n) {
 		SPDR = 0;		
 		while (!(SPSR & (1 << SPIF)))
 			;
 		buf[read_len++] = SPDR;
-	}	
+	}
+
 	SPI_PORT |= (1 << SPI_SS);
+
 	return read_len;
 }
 
