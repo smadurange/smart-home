@@ -22,6 +22,7 @@
 #define RF69_REG_TESTPA1      0x5A
 #define RF69_REG_TESTPA2      0x5C
 #define RF69_REG_IRQFLAGS1    0x27
+#define RF69_REG_IRQFLAGS2    0x28
 
 #define RF69_PALEVEL_PA1      0x40
 #define RF69_PALEVEL_PA2      0x20
@@ -112,6 +113,7 @@ void radio_send(const char *data, uint8_t n)
 
 	set_mode(RF69_OPMODE_STDBY);
 	cli();
+
 	SPI_PORT &= ~(1 << SPI_SS);
 
 	SPDR = 0x00 | 0x80;
@@ -125,8 +127,13 @@ void radio_send(const char *data, uint8_t n)
 	}
 
 	SPI_PORT |= (1 << SPI_SS);
+
 	sei();
 	set_mode(RF69_OPMODE_TX);
+
+	while (!(read_reg(RF69_REG_IRQFLAGS2) & 0x08))
+		;
+	set_mode(RF69_OPMODE_STDBY);
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
