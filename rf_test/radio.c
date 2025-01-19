@@ -13,23 +13,27 @@
 #define SPI_DDR      DDRB
 #define SPI_PORT     PORTB
 
-#define RF69_OPMODE_RX        0x10
-#define RF69_OPMODE_TX        0x0C
-#define RF69_OPMODE_STDBY     0x04
+#define RF69_OPMODE_RX                 0x10
+#define RF69_OPMODE_TX                 0x0C
+#define RF69_OPMODE_STDBY              0x04
 
-#define RF69_REG_OPMODE       0x01
-#define RF69_REG_PALEVEL      0x11
-#define RF69_REG_TESTPA1      0x5A
-#define RF69_REG_TESTPA2      0x5C
-#define RF69_REG_IRQFLAGS1    0x27
-#define RF69_REG_IRQFLAGS2    0x28
+#define RF69_REG_OPMODE                0x01
+#define RF69_REG_PALEVEL               0x11
+#define RF69_REG_TESTPA1               0x5A
+#define RF69_REG_TESTPA2               0x5C
+#define RF69_REG_IRQFLAGS1             0x27
+#define RF69_REG_IRQFLAGS2             0x28
+#define RF69_REG_DIOMAPPING1           0x25
 
-#define RF69_PALEVEL_PA1      0x40
-#define RF69_PALEVEL_PA2      0x20
-#define RF69_TESTPA1_BOOST    0x5D
-#define RF69_TESTPA2_BOOST    0x7C
-#define RF69_TESTPA1_NORMAL   0x55
-#define RF69_TESTPA2_NORMAL   0x70
+#define RF69_PALEVEL_PA1               0x40
+#define RF69_PALEVEL_PA2               0x20
+#define RF69_TESTPA1_BOOST             0x5D
+#define RF69_TESTPA2_BOOST             0x7C
+#define RF69_TESTPA1_NORMAL            0x55
+#define RF69_TESTPA2_NORMAL            0x70
+
+#define RF69_DIOMAPPING1_PACKET_SENT   0x00
+#define RF69_DIOMAPPING1_PAYLOAD_READY 0x40
 
 static int8_t power = 0;
 
@@ -69,11 +73,14 @@ static inline void set_mode(uint8_t mode)
 				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_BOOST);
 				write_reg(RF69_REG_TESTPA2, RF69_TESTPA2_BOOST);
 			}
+			write_reg(RF69_REG_DIOMAPPING1, RF69_DIOMAPPING1_PACKET_SENT);
 		} else {
 			if (power >= 18) {
 				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_NORMAL);
 				write_reg(RF69_REG_TESTPA2, RF69_TESTPA2_NORMAL);
 			}
+			if (mode == RF69_OPMODE_RX)
+				write_reg(RF69_REG_DIOMAPPING1, RF69_DIOMAPPING1_PAYLOAD_READY);
 		}
 
 		opmode = read_reg(RF69_REG_OPMODE);
@@ -141,6 +148,8 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	uint8_t read_len;
 
 	read_len = 0;
+
+	
 
 	write_reg(0x01, 0x04);	
 	while (!(read_reg(0x27) & 0x80))
