@@ -22,7 +22,7 @@
 #define RF69_REG_TESTPA1    0x5A
 #define RF69_REG_TESTPA2    0x5C
 
-static power = 0;
+static int8_t power = 0;
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -77,6 +77,25 @@ static inline void set_mode(uint8_t mode)
 
 		prev_mode = mode;
 	}
+}
+
+void radio_set_tx_power(int8_t val)
+{
+	uint8_t pa;
+
+	power = val;
+
+	if (power < -2)
+		power = -2;
+
+	if (power <= 13)
+		pa = (0x40 | ((power + 18) & 0x1F)); 
+	else if (power >= 18)
+		pa = (0x40 | 0x20 | ((power + 11) & 0x1F));
+	else
+		pa = (0x40 | 0x20 | ((power + 14) & 0x1F));
+
+	write_reg(0x11, pa);
 }
 
 void radio_send(const char *data, uint8_t n)

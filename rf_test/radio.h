@@ -11,6 +11,8 @@ struct radio_cfg {
 
 void radio_init(const struct radio_cfg *cfg);
 
+void radio_set_tx_power(int8_t val);
+
 void radio_listen(void);
 
 void radio_send(const char *data, uint8_t n);
