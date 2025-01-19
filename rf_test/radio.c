@@ -36,6 +36,7 @@
 #define RF69_DIOMAPPING1_PAYLOAD_READY 0x40
 
 static int8_t power = 0;
+static uint8_t opmode = 0;
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -64,10 +65,9 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 
 static inline void set_mode(uint8_t mode)
 {
-	static uint8_t prev_mode;
-	uint8_t opmode;
+	uint8_t val;
 
-	if (prev_mode != mode) {
+	if (opmode != mode) {
 		if (mode == RF69_OPMODE_TX) {
 			if (power >= 18) {
 				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_BOOST);
@@ -83,15 +83,15 @@ static inline void set_mode(uint8_t mode)
 				write_reg(RF69_REG_DIOMAPPING1, RF69_DIOMAPPING1_PAYLOAD_READY);
 		}
 
-		opmode = read_reg(RF69_REG_OPMODE);
-		opmode &= ~0x1C;
-		opmode |= (mode & 0x1C);
+		val = read_reg(RF69_REG_OPMODE);
+		val &= ~0x1C;
+		val |= (mode & 0x1C);
 
-		write_reg(RF69_REG_OPMODE, opmode);
+		write_reg(RF69_REG_OPMODE, val);
 		while (!(read_reg(RF69_REG_IRQFLAGS1) & 0x80))
 			;
 
-		prev_mode = mode;
+		opmode = mode;
 	}
 }
 
@@ -116,8 +116,9 @@ void radio_set_tx_power(int8_t val)
 
 void radio_send(const char *data, uint8_t n)
 {
-	uint8_t i;
+	uint8_t i, mode;
 
+	mode = opmode;
 	set_mode(RF69_OPMODE_STDBY);
 
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -138,14 +139,17 @@ void radio_send(const char *data, uint8_t n)
 	while (!(read_reg(RF69_REG_IRQFLAGS2) & 0x08))
 		;
 
-	set_mode(RF69_OPMODE_STDBY);
+	set_mode(mode);
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
 {
-	uint8_t read_len;
+	uint8_t read_len, mode;
 
 	read_len = 0;
+	mode = opmode;
+
+	set_mode(RF69_OPMODE_STDBY);
 
 	SPI_PORT &= ~(1 << SPI_SS);
 
@@ -162,6 +166,7 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	SPI_PORT |= (1 << SPI_SS);
 
+	set_mode(mode);
 	return read_len;
 }
 
