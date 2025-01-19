@@ -4,13 +4,13 @@
 #include "radio.h"
 #include "serial.h"
 
-#define RX_PIN         PB0
-#define RX_DDR         DDRB
-#define RX_PORT        PORTB
-#define RX_PCIE        PCIE0
-#define RX_PCINT       PCINT0
-#define RX_PCMSK       PCMSK0
-#define RX_PCINTVEC    PCINT0_vect
+#define RX_PIN         PD7
+#define RX_DDR         DDRD
+#define RX_PORT        PORTD
+#define RX_PCIE        PCIE2
+#define RX_PCINT       PCINT23
+#define RX_PCMSK       PCMSK2
+#define RX_PCINTVEC    PCINT2_vect
 
 #define MAX_PAYLOAD_LEN 60
 
@@ -26,14 +26,16 @@ int main(void)
 	cfg.payload_len = slen;
 
 	RX_DDR &= ~(1 << RX_PIN);
+	RX_PORT &= ~(1 << RX_PIN); 
 	PCICR |= (1 << RX_PCIE);
 	RX_PCMSK |= (1 << RX_PCINT);
 
 	serial_init();
-	sei();
 
 	radio_init(&cfg);
 	radio_listen();
+
+	sei();
 
 	for (;;)
 		;
