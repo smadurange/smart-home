@@ -13,7 +13,14 @@
 #define SPI_DDR      DDRB
 #define SPI_PORT     PORTB
 
-enum OpMode { DEFAULT, STDBY, TX, RX };
+#define RFM69_OPMODE_RX     0x10
+#define RFM69_OPMODE_TX     0x0C
+#define RFM69_OPMODE_STDBY  0x04
+
+#define RF69_REG_OPMODE     0x01
+#define RF69_REG_IRQFLAGS1  0x27
+#define RF69_REG_TESTPA1    0x5A
+#define RF69_REG_TESTPA2    0x5C
 
 static power = 0;
 
@@ -44,22 +51,28 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 
 static inline void set_mode(uint8_t mode)
 {
-	static uint8_t prev_mode = DEFAULT;
+	static uint8_t prev_mode;
 	uint8_t opmode;
 
 	if (prev_mode != mode) {
-		if (mode != STDBY) {
+		if (mode == RFM69_OPMODE_TX) {
 			if (power >= 18) {
-				write_reg(0x5A, 0x55);
-				write_reg(0x5C, 0x70);
+				write_reg(RF69_REG_TESTPA1, 0x5D);
+				write_reg(RF69_REG_TESTPA2, 0x7C);
 			}
-		} 
+		} else {
+			if (power >= 18) {
+				write_reg(RF69_REG_TESTPA1, 0x55);
+				write_reg(RF69_REG_TESTPA2, 0x70);
+			}
+		}
 
-		opmode = read_reg(0x01);
+		opmode = read_reg(RF69_REG_OPMODE);
 		opmode &= ~0x1C;
 		opmode |= (mode & 0x1C);
-		write_reg(0x01, opmode);
-		while (!(read_reg(0x27) & 0x80))
+
+		write_reg(RF69_REG_OPMODE, opmode);
+		while (!(read_reg(RF69_REG_IRQFLAGS1) & 0x80))
 			;
 
 		prev_mode = mode;
@@ -136,23 +149,13 @@ void radio_init(const struct radio_cfg *cfg)
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
 
-	set_mode(STDBY);
+	set_mode(RFM69_OPMODE_STDBY);
 
-	// modem config: 
-	// GFSK (BT=1.0), no Manchester, whitening, CRC, no address filtering 
-	// AFC BW == RX BW == 2 x bit rate
-	write_reg(0x02, 0x01);
-	write_reg(0x03, 0x00);
-	write_reg(0x04, 0x80);
-	write_reg(0x05, 0x10);
-	write_reg(0x06, 0x00);
-	write_reg(0x19, 0xE0);
-	write_reg(0x1A, 0xE0);
+	// LNA, AFC and RXBW settings
+	write_reg(0x18, 0x88);
+	write_reg(0x19, 0x55);
+	write_reg(0x1A, 0x8B);
 
-	write_reg(0x37, 0x50);
-	write_reg(0x38, cfg->payload_len);
-	write_reg(0x39, cfg->nodeid);
-	
 	// DIO mappings: IRQ on DIO0
 	write_reg(0x25, 0x40);
 	write_reg(0x26, 0x07);
@@ -164,6 +167,10 @@ void radio_init(const struct radio_cfg *cfg)
 	write_reg(0x2E, 0x80);
 	write_reg(0x2F, cfg->netid);
 
+	// packet config
+	write_reg(0x37, 0x10);
+	write_reg(0x38, cfg->payload_len);
+	write_reg(0x39, cfg->nodeid);
 
 	// fifo config
 	write_reg(0x3C, 0x8F);
