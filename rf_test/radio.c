@@ -32,7 +32,6 @@
 #define RF69_TESTPA2_BOOST             0x7C
 #define RF69_TESTPA1_NORMAL            0x55
 #define RF69_TESTPA2_NORMAL            0x70
-
 #define RF69_DIOMAPPING1_PACKET_SENT   0x00
 #define RF69_DIOMAPPING1_PAYLOAD_READY 0x40
 
