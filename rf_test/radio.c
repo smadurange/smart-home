@@ -6,12 +6,12 @@
 #include "radio.h"
 #include "serial.h"
 
-#define SPI_SS       PB2
-#define SPI_SCK      PB5
-#define SPI_MISO     PB4
-#define SPI_MOSI     PB3
-#define SPI_DDR      DDRB
-#define SPI_PORT     PORTB
+#define SPI_SS     PB2
+#define SPI_SCK    PB5
+#define SPI_MISO   PB4
+#define SPI_MOSI   PB3
+#define SPI_DDR    DDRB
+#define SPI_PORT   PORTB
 
 #define RF69_OPMODE_RX                  0x10
 #define RF69_OPMODE_TX                  0x0C
