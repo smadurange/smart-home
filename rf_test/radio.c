@@ -13,9 +13,9 @@
 #define SPI_DDR      DDRB
 #define SPI_PORT     PORTB
 
-#define RFM69_OPMODE_RX       0x10
-#define RFM69_OPMODE_TX       0x0C
-#define RFM69_OPMODE_STDBY    0x04
+#define RF69_OPMODE_RX        0x10
+#define RF69_OPMODE_TX        0x0C
+#define RF69_OPMODE_STDBY     0x04
 
 #define RF69_REG_OPMODE       0x01
 #define RF69_REG_PALEVEL      0x11
@@ -63,7 +63,7 @@ static inline void set_mode(uint8_t mode)
 	uint8_t opmode;
 
 	if (prev_mode != mode) {
-		if (mode == RFM69_OPMODE_TX) {
+		if (mode == RF69_OPMODE_TX) {
 			if (power >= 18) {
 				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_BOOST);
 				write_reg(RF69_REG_TESTPA2, RF69_TESTPA2_BOOST);
@@ -110,11 +110,10 @@ void radio_send(const char *data, uint8_t n)
 {
 	uint8_t i;
 
-	write_reg(0x01, 0x04);	
-	while (!(read_reg(0x27) & 0x80))
-		;
-
+	set_mode(RF69_OPMODE_STDBY);
+	cli();
 	SPI_PORT &= ~(1 << SPI_SS);
+
 	SPDR = 0x00 | 0x80;
 	while (!(SPSR & (1 << SPIF)))
 		;
@@ -124,17 +123,10 @@ void radio_send(const char *data, uint8_t n)
 		while (!(SPSR & (1 << SPIF)))
 			;
 	}
+
 	SPI_PORT |= (1 << SPI_SS);
-
-	// todo: high power settings?
-
-	write_reg(0x01, 0x0C);
-	while (!(read_reg(0x28) & 0x08))
-		;
-
-	write_reg(0x01, 0x04);	
-	while (!(read_reg(0x27) & 0x80))
-		;
+	sei();
+	set_mode(RF69_OPMODE_TX);
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
@@ -176,7 +168,7 @@ void radio_init(const struct radio_cfg *cfg)
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
 
-	set_mode(RFM69_OPMODE_STDBY);
+	set_mode(RF69_OPMODE_STDBY);
 
 	// LNA, AFC and RXBW settings
 	write_reg(0x18, 0x88);
