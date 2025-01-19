@@ -172,11 +172,7 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 void radio_listen(void)
 {
-	write_reg(0x01, (read_reg(0x01) & 0xE3) | 0x10);
-	while (!(read_reg(0x27) & 0x80))
-		;
-
-	// todo: go to low power mode
+	set_mode(RF69_OPMODE_RX);
 }
 
 void radio_init(const struct radio_cfg *cfg)
