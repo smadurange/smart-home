@@ -13,27 +13,27 @@
 #define SPI_DDR      DDRB
 #define SPI_PORT     PORTB
 
-#define RF69_OPMODE_RX                 0x10
-#define RF69_OPMODE_TX                 0x0C
-#define RF69_OPMODE_STDBY              0x04
+#define RF69_OPMODE_RX                  0x10
+#define RF69_OPMODE_TX                  0x0C
+#define RF69_OPMODE_STDBY               0x04
 
-#define RF69_REG_FIFO                  0x01
-#define RF69_REG_OPMODE                0x01
-#define RF69_REG_PALEVEL               0x11
-#define RF69_REG_TESTPA1               0x5A
-#define RF69_REG_TESTPA2               0x5C
-#define RF69_REG_IRQFLAGS1             0x27
-#define RF69_REG_IRQFLAGS2             0x28
-#define RF69_REG_DIOMAPPING1           0x25
+#define RF69_REG_FIFO                   0x01
+#define RF69_REG_OPMODE                 0x01
+#define RF69_REG_PALEVEL                0x11
+#define RF69_REG_TESTPA1                0x5A
+#define RF69_REG_TESTPA2                0x5C
+#define RF69_REG_IRQFLAGS1              0x27
+#define RF69_REG_IRQFLAGS2              0x28
+#define RF69_REG_DIOMAPPING1            0x25
 
-#define RF69_PALEVEL_PA1               0x40
-#define RF69_PALEVEL_PA2               0x20
-#define RF69_TESTPA1_BOOST             0x5D
-#define RF69_TESTPA2_BOOST             0x7C
-#define RF69_TESTPA1_NORMAL            0x55
-#define RF69_TESTPA2_NORMAL            0x70
-#define RF69_DIOMAPPING1_PACKET_SENT   0x00
-#define RF69_DIOMAPPING1_PAYLOAD_READY 0x40
+#define RF69_PALEVEL_PA1                0x40
+#define RF69_PALEVEL_PA2                0x20
+#define RF69_TESTPA1_BOOST              0x5D
+#define RF69_TESTPA2_BOOST              0x7C
+#define RF69_TESTPA1_NORMAL             0x55
+#define RF69_TESTPA2_NORMAL             0x70
+#define RF69_DIOMAPPING1_PACKET_SENT    0x00
+#define RF69_DIOMAPPING1_PAYLOAD_READY  0x40
 
 static int8_t power = 0;
 static uint8_t opmode = 0;
