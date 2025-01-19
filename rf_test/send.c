@@ -22,7 +22,7 @@ int main(void)
 
 	serial_init();
 	radio_init(&cfg);
-	radio_set_tx_power(14);
+	radio_set_tx_power(18);
 
 	for (;;) {
 		radio_send(s, n);
