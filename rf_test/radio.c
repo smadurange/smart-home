@@ -18,10 +18,10 @@
 #define RFM69_OPMODE_STDBY    0x04
 
 #define RF69_REG_OPMODE       0x01
-#define RF69_REG_IRQFLAGS1    0x27
+#define RF69_REG_PALEVEL      0x11
 #define RF69_REG_TESTPA1      0x5A
 #define RF69_REG_TESTPA2      0x5C
-#define RF69_REG_PALEVEL      0x11
+#define RF69_REG_IRQFLAGS1    0x27
 
 #define RF69_PALEVEL_PA1      0x40
 #define RF69_PALEVEL_PA2      0x20
