@@ -21,6 +21,14 @@
 #define RF69_REG_IRQFLAGS1  0x27
 #define RF69_REG_TESTPA1    0x5A
 #define RF69_REG_TESTPA2    0x5C
+#define RF69_REG_PALEVEL    0x11
+
+#define RF69_PALEVEL_PA1    0x40
+#define RF69_PALEVEL_PA2    0x20
+#define RF69_TESTPA1_BOOST  0x5D
+#define RF69_TESTPA2_BOOST  0x7C
+#define RF69_TESTPA1_NORMAL 0x55
+#define RF69_TESTPA2_NORMAL 0x70
 
 static int8_t power = 0;
 
@@ -57,13 +65,13 @@ static inline void set_mode(uint8_t mode)
 	if (prev_mode != mode) {
 		if (mode == RFM69_OPMODE_TX) {
 			if (power >= 18) {
-				write_reg(RF69_REG_TESTPA1, 0x5D);
-				write_reg(RF69_REG_TESTPA2, 0x7C);
+				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_BOOST);
+				write_reg(RF69_REG_TESTPA2, RF69_TESTPA2_BOOST);
 			}
 		} else {
 			if (power >= 18) {
-				write_reg(RF69_REG_TESTPA1, 0x55);
-				write_reg(RF69_REG_TESTPA2, 0x70);
+				write_reg(RF69_REG_TESTPA1, RF69_TESTPA1_NORMAL);
+				write_reg(RF69_REG_TESTPA2, RF69_TESTPA2_NORMAL);
 			}
 		}
 
@@ -89,13 +97,13 @@ void radio_set_tx_power(int8_t val)
 		power = -2;
 
 	if (power <= 13)
-		pa = (0x40 | ((power + 18) & 0x1F)); 
+		pa = (RF69_PALEVEL_PA1 | ((power + 18) & 0x1F)); 
 	else if (power >= 18)
-		pa = (0x40 | 0x20 | ((power + 11) & 0x1F));
+		pa = (RF69_PALEVEL_PA1 | RF69_PALEVEL_PA2 | ((power + 11) & 0x1F));
 	else
-		pa = (0x40 | 0x20 | ((power + 14) & 0x1F));
+		pa = (RF69_PALEVEL_PA1 | RF69_PALEVEL_PA2 | ((power + 14) & 0x1F));
 
-	write_reg(0x11, pa);
+	write_reg(RF69_REG_PALEVEL, pa);
 }
 
 void radio_send(const char *data, uint8_t n)
