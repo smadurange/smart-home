@@ -17,6 +17,8 @@
 #define NRF24L01_CE_DDR   DDRB
 #define NRF24L01_CE_PORT  DDRB
 
+#define NRF24L01_POWER_ON_RST_DELAY    100
+
 #define NRF24L01_REG_CONFIG           0x00
 #define NRF24L01_REG_EN_AA            0x01
 #define NRF24L01_REG_EN_RXADDR        0x02
@@ -55,8 +57,6 @@
 #define NRF24L01_W_ACK_PAYLOAD        0xA8
 #define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
 #define NRF24L01_NOP                  0xFF
-
-#define NRF24L01_POWER_ON_RST_DELAY    100
 
 static inline uint8_t read_reg(uint8_t reg)
 {
