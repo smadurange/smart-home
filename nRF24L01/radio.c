@@ -61,7 +61,10 @@
 #define NRF24L01_MASK_RX_DR              6
 #define NRF24L01_MASK_TX_DS              5
 #define NRF24L01_MASK_MAX_RT             4
-#define NRF24L01_CRCO                    3
+#define NRF24L01_EN_CRC                  3
+#define NRF24L01_CRCO                    2
+#define NRF24L01_PWR_UP                  1
+#define NRF24L01_PRIM_RX                 0
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -118,9 +121,12 @@ void radio_init(const struct radio_cfg *cfg)
 
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
-	conf = 0x08;
+	conf = 0;
 	conf |= (1 << NRF24L01_MASK_RX_DR) | (1 << NRF24L01_MASK_TX_DS) | (1 << NRF24L01_MASK_MAX_RT);
+	conf |= (1 << NRF24L01_EN_CRC);
 	conf |= (1 << NRF24L01_CRCO);
+	conf &= ~(1 << NRF24L01_PWR_UP);
+	conf &= ~(1 << NRF24L01_PRIM_RX);
 
 	write_config_reg(conf);
 }
