@@ -58,10 +58,10 @@
 #define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
 #define NRF24L01_NOP                  0xFF
 
-#define NRF24L01_DIS_RX_DR_IRQ        0x40
-#define NRF24L01_DIS_TX_DS_IRQ        0x20
-#define NRF24L01_DIS_MAX_RT_IRQ       0x10
-#define NRF24L01_CRCO_LEN_2           0x04
+#define NRF24L01_MASK_RX_DR              6
+#define NRF24L01_MASK_TX_DS              5
+#define NRF24L01_MASK_MAX_RT             4
+#define NRF24L01_CRCO                    3
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -107,6 +107,8 @@ static inline void write_config_reg(uint8_t val)
 
 void radio_init(const struct radio_cfg *cfg)
 {
+	uint8_t conf;
+
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
 	SPI_PORT |= (1 << SPI_SS);
 	SPCR |= (1 << SPE) | (1 << MSTR);
@@ -116,8 +118,9 @@ void radio_init(const struct radio_cfg *cfg)
 
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
-	write_config_reg((NRF24L01_DIS_RX_DR_IRQ 
-	    | NRF24L01_DIS_TX_DS_IRQ 
-	    | NRF24L01_DIS_MAX_RT_IRQ 
-	    | NRF24L01_CRCO_LEN_2));
+	conf = 0x08;
+	conf |= (1 << NRF24L01_MASK_RX_DR) | (1 << NRF24L01_MASK_TX_DS) | (1 << NRF24L01_MASK_MAX_RT);
+	conf |= (1 << NRF24L01_CRCO);
+
+	write_config_reg(conf);
 }
