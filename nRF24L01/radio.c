@@ -66,6 +66,13 @@
 #define NRF24L01_PWR_UP                  1
 #define NRF24L01_PRIM_RX                 0
 
+#define NRF24L01_ENAA_P5                 5
+#define NRF24L01_ENAA_P4                 4
+#define NRF24L01_ENAA_P3                 3
+#define NRF24L01_ENAA_P2                 2
+#define NRF24L01_ENAA_P1                 1
+#define NRF24L01_ENAA_P0                 0
+
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -124,4 +131,14 @@ void radio_init(const struct radio_cfg *cfg)
 	conf &= ~(1 << NRF24L01_PRIM_RX);
 
 	write_reg(NRF24L01_REG_CONFIG, conf);
+
+	conf = 0;
+	conf |= (1 << NRF24L01_ENAA_P5);
+	conf |= (1 << NRF24L01_ENAA_P4);
+	conf |= (1 << NRF24L01_ENAA_P3);
+	conf |= (1 << NRF24L01_ENAA_P2);
+	conf |= (1 << NRF24L01_ENAA_P1);
+	conf |= (1 << NRF24L01_ENAA_P0);
+
+	write_reg(NRF24L01_REG_EN_AA, conf);
 }
