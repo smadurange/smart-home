@@ -58,6 +58,10 @@
 #define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
 #define NRF24L01_NOP                  0xFF
 
+#define NRF24L01_EN_RX_DR_IRQ         0xBF
+#define NRF24L01_EN_TX_DS_IRQ         0xDF
+#define NRF24L01_EN_MAX_RT_IRQ        0xEF
+
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -107,5 +111,7 @@ void radio_init(const struct radio_cfg *cfg)
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
 	// disable all interrupts, enable 2-byte CRC.
-	write_reg(NRF24L01_REG_CONFIG, 0x7C);
+	write_reg(NRF24L01_REG_CONFIG, !(NRF24L01_EN_RX_DR_IRQ 
+	    & NRF24L01_EN_TX_DS_IRQ 
+	    & NRF24L01_EN_MAX_RT_IRQ) | );
 }
