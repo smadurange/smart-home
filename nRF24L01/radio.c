@@ -58,10 +58,10 @@
 #define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
 #define NRF24L01_NOP                  0xFF
 
-#define NRF24L01_EN_RX_DR_IRQ         0x3F
-#define NRF24L01_EN_TX_DS_IRQ         0x5F
-#define NRF24L01_EN_MAX_RT_IRQ        0x6F
-#define NRF24L01_CRCO_BYTE_2          0x04
+#define NRF24L01_DIS_RX_DR_IRQ        0x40
+#define NRF24L01_DIS_TX_DS_IRQ        0x20
+#define NRF24L01_DIS_MAX_RT_IRQ       0x10
+#define NRF24L01_CRCO_LEN_2           0x04
 
 static inline uint8_t read_reg(uint8_t reg)
 {
@@ -100,6 +100,11 @@ void radio_listen(void)
 {
 }
 
+static inline void write_config_reg(uint8_t val)
+{
+	write_reg(NRF24L01_REG_CONFIG, (0x7F & val));
+}
+
 void radio_init(const struct radio_cfg *cfg)
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
@@ -111,7 +116,8 @@ void radio_init(const struct radio_cfg *cfg)
 
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
-	write_reg(NRF24L01_REG_CONFIG, 
-	    !(NRF24L01_EN_RX_DR_IRQ & NRF24L01_EN_TX_DS_IRQ & NRF24L01_EN_MAX_RT_IRQ) 
-	    | NRF24L01_CRCO_BYTE_2);
+	write_config_reg((NRF24L01_DIS_RX_DR_IRQ 
+	    | NRF24L01_DIS_TX_DS_IRQ 
+	    | NRF24L01_DIS_MAX_RT_IRQ 
+	    | NRF24L01_CRCO_LEN_2));
 }
