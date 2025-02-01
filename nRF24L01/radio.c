@@ -106,5 +106,6 @@ void radio_init(const struct radio_cfg *cfg)
 
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
-	write_reg(NRF24L01_REG_CONFIG, 01111100b);
+	// disable all interrupts, enable 2-byte CRC.
+	write_reg(NRF24L01_REG_CONFIG, 0x7C);
 }
