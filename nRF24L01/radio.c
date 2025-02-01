@@ -103,11 +103,6 @@ void radio_listen(void)
 {
 }
 
-static inline void write_config_reg(uint8_t val)
-{
-	write_reg(NRF24L01_REG_CONFIG, (0x7F & val));
-}
-
 void radio_init(const struct radio_cfg *cfg)
 {
 	uint8_t conf;
@@ -128,5 +123,5 @@ void radio_init(const struct radio_cfg *cfg)
 	conf &= ~(1 << NRF24L01_PWR_UP);
 	conf &= ~(1 << NRF24L01_PRIM_RX);
 
-	write_config_reg(conf);
+	write_reg(NRF24L01_REG_CONFIG, conf);
 }
