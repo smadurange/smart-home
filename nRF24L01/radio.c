@@ -44,7 +44,7 @@
 #define NRF24L01_REG_DYNPD            0x1C
 #define NRF24L01_REG_FEATURE          0x1D
 
-#define NRF24L01_R_REGISTER           0x1F
+#define NRF24L01_R_REGISTER           0x00
 #define NRF24L01_W_REGISTER           0x20
 #define NRF24L01_R_RX_PAYLOAD         0x60
 #define NRF24L01_W_TX_PAYLOAD         0xA0
@@ -56,10 +56,12 @@
 #define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
 #define NRF24L01_NOP                  0xFF
 
+#define NRF24L01_POWER_ON_RST_DELAY    100
+
 static inline uint8_t read_reg(uint8_t reg)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
-	SPDR = reg & 0x7F;
+	SPDR = NRF24L01_R_REGISTER | reg;
 	while (!(SPSR & (1 << SPIF)))
 		;
 	SPDR = 0;
@@ -72,7 +74,7 @@ static inline uint8_t read_reg(uint8_t reg)
 static inline void write_reg(uint8_t reg, uint8_t val)
 {
 	SPI_PORT &= ~(1 << SPI_SS);
-	SPDR = reg | 0x80;
+	SPDR = NRF24L01_W_REGISTER | reg;
 	while (!(SPSR & (1 << SPIF)))
 		;
 	SPDR = val;
@@ -83,58 +85,10 @@ static inline void write_reg(uint8_t reg, uint8_t val)
 
 void radio_send(const char *data, uint8_t n)
 {
-	uint8_t i, mode;
-
-	mode = opmode;
-	set_mode(RF69_OPMODE_STDBY);
-
-	SPI_PORT &= ~(1 << SPI_SS);
-
-	SPDR = RF69_REG_FIFO | 0x80;
-	while (!(SPSR & (1 << SPIF)))
-		;
-
-	for (i = 0; i < n; i++) {
-		SPDR = data[i];
-		while (!(SPSR & (1 << SPIF)))
-			;
-	}
-
-	SPI_PORT |= (1 << SPI_SS);
-
-	set_mode(RF69_OPMODE_TX);
-	while (!(read_reg(RF69_REG_IRQFLAGS2) & 0x08))
-		;
-
-	set_mode(mode);
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
 {
-	uint8_t read_len, mode;
-
-	read_len = 0;
-	mode = opmode;
-
-	set_mode(RF69_OPMODE_STDBY);
-
-	SPI_PORT &= ~(1 << SPI_SS);
-
-	SPDR = RF69_REG_FIFO | 0x7F;
-	while (!(SPSR & (1 << SPIF)))
-		;
-
-	while (read_len < n) {
-		SPDR = 0;		
-		while (!(SPSR & (1 << SPIF)))
-			;
-		buf[read_len++] = SPDR;
-	}
-
-	SPI_PORT |= (1 << SPI_SS);
-
-	set_mode(mode);
-	return read_len;
 }
 
 void radio_listen(void)
@@ -150,5 +104,7 @@ void radio_init(const struct radio_cfg *cfg)
 	NRF24L01_CE_DDR |= (1 << NRF24L01_CE);
 	NRF24L01_CE_PORT &= ~(1 << NRF24L01_CE);
 
-	_delay_ms(100);
+	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
+
+	write_reg(NRF24L01_REG_CONFIG, 01111100b);
 }
