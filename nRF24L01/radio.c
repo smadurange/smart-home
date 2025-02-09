@@ -136,13 +136,14 @@ void radio_init(const struct radio_cfg *cfg)
 	conf |= (1 << NRF24L01_MASK_TX_DS);
 	conf |= (1 << NRF24L01_MASK_MAX_RT);
 	conf |= (1 << NRF24L01_CRCO);
-
 	write_reg(NRF24L01_REG_CONFIG, conf);
 
 	// only use data pipe 0
 	conf = 0;
 	conf &= ~(1 << NRF24L01_ERX_P1);
 	conf |= (1 << NRF24L01_ERX_P0);
-
 	write_reg(NRF24L01_REG_EN_RXADDR, conf);
+
+	// set address with to 3 bytes
+	write_reg(NRF24L01_REG_SETUP_AW, 0x01);	
 }
