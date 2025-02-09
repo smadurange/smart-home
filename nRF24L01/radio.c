@@ -46,37 +46,19 @@
 #define NRF24L01_REG_DYNPD            0x1C
 #define NRF24L01_REG_FEATURE          0x1D
 
+#define NRF24L01_NOP                  0xFF
 #define NRF24L01_R_REGISTER           0x00
 #define NRF24L01_W_REGISTER           0x20
 #define NRF24L01_R_RX_PAYLOAD         0x60
 #define NRF24L01_W_TX_PAYLOAD         0xA0
 #define NRF24L01_FLUSH_TX             0xE1
 #define NRF24L01_FLUSH_RX             0xE2
-#define NRF24L01_REUSE_TX_PL          0xE3
-#define NRF24L01_R_RX_PL_WID          0x60
-#define NRF24L01_W_ACK_PAYLOAD        0xA8
-#define NRF24L01_W_TX_PAYLOAD_NOACK   0xB0
-#define NRF24L01_NOP                  0xFF
 
 #define NRF24L01_MASK_RX_DR              6
 #define NRF24L01_MASK_TX_DS              5
 #define NRF24L01_MASK_MAX_RT             4
-#define NRF24L01_EN_CRC                  3
-#define NRF24L01_CRCO                    2
 #define NRF24L01_PWR_UP                  1
 #define NRF24L01_PRIM_RX                 0
-
-#define NRF24L01_ENAA_P5                 5
-#define NRF24L01_ENAA_P4                 4
-#define NRF24L01_ENAA_P3                 3
-#define NRF24L01_ENAA_P2                 2
-#define NRF24L01_ENAA_P1                 1
-#define NRF24L01_ENAA_P0                 0
-
-#define NRF24L01_ERX_P5                  5
-#define NRF24L01_ERX_P4                  4
-#define NRF24L01_ERX_P3                  3
-#define NRF24L01_ERX_P2                  2
 #define NRF24L01_ERX_P1                  1
 #define NRF24L01_ERX_P0                  0
 
@@ -144,6 +126,8 @@ void radio_init(const struct radio_cfg *cfg)
 	conf |= (1 << NRF24L01_ERX_P0);
 	write_reg(NRF24L01_REG_EN_RXADDR, conf);
 
-	// set address with to 3 bytes
+	// set address width to 3 bytes
 	write_reg(NRF24L01_REG_SETUP_AW, 0x01);	
+
+	
 }
