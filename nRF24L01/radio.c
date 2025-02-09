@@ -131,7 +131,9 @@ void radio_init(const struct radio_cfg *cfg)
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
 	conf = 0;
-	conf |= (1 << NRF24L01_MASK_RX_DR) | (1 << NRF24L01_MASK_TX_DS) | (1 << NRF24L01_MASK_MAX_RT);
+	conf |= (1 << NRF24L01_MASK_RX_DR);
+	conf |= (1 << NRF24L01_MASK_TX_DS);
+	conf |= (1 << NRF24L01_MASK_MAX_RT);
 	conf |= (1 << NRF24L01_EN_CRC);
 	conf |= (1 << NRF24L01_CRCO);
 	conf &= ~(1 << NRF24L01_PWR_UP);
