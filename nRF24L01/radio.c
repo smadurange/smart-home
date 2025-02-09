@@ -130,32 +130,17 @@ void radio_init(const struct radio_cfg *cfg)
 
 	_delay_ms(NRF24L01_POWER_ON_RST_DELAY);
 
+	// disable IRQs, set CRC encoding scheme to 2 bytes
 	conf = 0;
 	conf |= (1 << NRF24L01_MASK_RX_DR);
 	conf |= (1 << NRF24L01_MASK_TX_DS);
 	conf |= (1 << NRF24L01_MASK_MAX_RT);
-	conf |= (1 << NRF24L01_EN_CRC);
 	conf |= (1 << NRF24L01_CRCO);
-	conf &= ~(1 << NRF24L01_PWR_UP);
-	conf &= ~(1 << NRF24L01_PRIM_RX);
 
 	write_reg(NRF24L01_REG_CONFIG, conf);
 
+	// only use data pipe 0
 	conf = 0;
-	conf |= (1 << NRF24L01_ENAA_P5);
-	conf |= (1 << NRF24L01_ENAA_P4);
-	conf |= (1 << NRF24L01_ENAA_P3);
-	conf |= (1 << NRF24L01_ENAA_P2);
-	conf |= (1 << NRF24L01_ENAA_P1);
-	conf |= (1 << NRF24L01_ENAA_P0);
-
-	write_reg(NRF24L01_REG_EN_AA, conf);
-
-	conf = 0;
-	conf &= ~(1 << NRF24L01_ERX_P5);
-	conf &= ~(1 << NRF24L01_ERX_P4);
-	conf &= ~(1 << NRF24L01_ERX_P3);
-	conf &= ~(1 << NRF24L01_ERX_P2);
 	conf &= ~(1 << NRF24L01_ERX_P1);
 	conf |= (1 << NRF24L01_ERX_P0);
 
