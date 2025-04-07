@@ -290,8 +290,7 @@ void radio_listen(void)
 
 uint8_t radio_recv(char *buf, uint8_t n)
 {
-	char s[5];
-	uint8_t rxdr, readlen, pdlen, maxlen;
+	uint8_t readlen, pdlen, maxlen;
 
 	pdlen = 0;
 	disable_chip();

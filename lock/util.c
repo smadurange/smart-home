@@ -1,6 +1,6 @@
 #include "util.h"
 
-void xor(const char *k, const char *s, char *d, int n)
+void xor(const char *k, const char *s, char *d, uint8_t n)
 {
 	int i;
 

@@ -31,6 +31,7 @@ static inline void await_reply(void)
 
 int main(void)
 {
+	uint8_t n;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 

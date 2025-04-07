@@ -1,6 +1,8 @@
 #ifndef MY_UTIL_H
 #define MY_UTIL_H
 
+#include <stdint.h>
+
 #define WDLEN  32
 
 #define KEY       "dM>}jdb,6gsnC$J^K 8(I5vyPemPs%;K"
