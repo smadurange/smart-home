@@ -61,9 +61,13 @@ int main(void)
 				msg[n] = '\0';
 				rxdr = 0;
 				uart_write_line(msg);
+			} else {
+				// power down
+				uart_write_line("ERROR: no reply");
 			}
 		} else {
 			// power down
+			uart_write_line("ERROR: no session key");
 		}
 	}
 	return 0;
