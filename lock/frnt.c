@@ -1,7 +1,8 @@
-/* Door front, connected to the fingerprint scanner  */
+/* Door front, connected to the fingerprint scanner */
 
 #include <stdint.h>
-#include <string.h>
+
+#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #include "nrfm.h"
@@ -21,6 +22,8 @@ static volatile int rxdr = 0;
 
 static inline void await_reply(void)
 {
+	uint8_t i;
+
 	radio_listen();
 	for (i = 0; i < 500 && rxdr == 0; i += 100)
 		_delay_ms(100);
@@ -28,7 +31,6 @@ static inline void await_reply(void)
 
 int main(void)
 {
-	uint8_t i;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
@@ -43,6 +45,8 @@ int main(void)
 	radio_init(rxaddr);
 	radio_print_config();
 
+	sei();
+
 	for (;;) {
 		_delay_ms(2000); /* todo: fingerprint check */
 		xor(KEY, SYN, msg, WDLEN);
@@ -53,6 +57,7 @@ int main(void)
 			msg[n] = '\0';
 			rxdr = 0;
 			xor(KEY, msg, key, WDLEN);
+			// check btn press
 			xor(key, LOCK, msg, WDLEN);
 			radio_sendto(txaddr, msg, WDLEN);
 			await_reply();
