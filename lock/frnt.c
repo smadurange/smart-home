@@ -34,13 +34,17 @@ int main(void)
 
 	char key[WDLEN + 1], msg[WDLEN + 1];
 
+	RX_DDR &= ~(1 << RX_PIN);
+	RX_PORT |= (1 << RX_PIN); 
+	PCICR |= (1 << RX_PCIE);
+	RX_PCMSK |= (1 << RX_PCINT);
+
 	uart_init();
 	radio_init(rxaddr);
 	radio_print_config();
 
 	for (;;) {
 		_delay_ms(2000); /* todo: fingerprint check */
-
 		xor(KEY, SYN, msg, WDLEN);
 		radio_sendto(txaddr, msg, WDLEN);
 		await_reply();
@@ -48,7 +52,6 @@ int main(void)
 			n = radio_recv(msg, WDLEN);
 			msg[n] = '\0';
 			rxdr = 0;
-
 			xor(KEY, msg, key, WDLEN);
 			xor(key, LOCK, msg, WDLEN);
 			radio_sendto(txaddr, msg, WDLEN);
@@ -63,7 +66,6 @@ int main(void)
 			// power down
 		}
 	}
-
 	return 0;
 }
 
