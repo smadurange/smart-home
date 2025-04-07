@@ -1,9 +1,9 @@
 #include <avr/io.h>
 #include <util/setbaud.h>
 
-#include "serial.h"
+#include "uart.h"
 
-void serial_init(void)
+void uart_init(void)
 {
 	UBRR0H = UBRRH_VALUE;
 	UBRR0L = UBRRL_VALUE;
@@ -16,18 +16,22 @@ void serial_init(void)
 	UCSR0C = (1 << UCSZ01) | (1 << UCSZ00);
 }
 
-void serial_write(char data)
+static inline void uart_write_char(char c)
 {
 	while (!(UCSR0A & (1 << UDRE0)))
 		;
-	UDR0 = data;
+	UDR0 = c;
 }
 
-void serial_write_line(const char *s)
+void uart_write(const char *s)
 {
 	for (; *s; s++)
-		serial_write(*s);
+		uart_write_char(*s);
+}
 
-	serial_write('\r');
-	serial_write('\n');
+void uart_write_line(const char *s)
+{
+	uart_write(s);
+	uart_write_char('\r');
+	uart_write_char('\n');
 }
