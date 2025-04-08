@@ -1,6 +1,7 @@
 /* Door front, connected to the fingerprint scanner */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #include <avr/interrupt.h>
 #include <util/delay.h>
@@ -22,7 +23,7 @@ static volatile int rxdr = 0;
 
 static inline void await_reply(void)
 {
-	uint8_t i;
+	int i;
 
 	radio_listen();
 	for (i = 0; i < 500 && rxdr == 0; i += 100)
@@ -35,7 +36,7 @@ int main(void)
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
-	char key[WDLEN + 1], msg[WDLEN + 1];
+	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
 
 	RX_DDR &= ~(1 << RX_PIN);
 	RX_PORT |= (1 << RX_PIN); 
@@ -54,22 +55,25 @@ int main(void)
 		radio_sendto(txaddr, msg, WDLEN);
 		await_reply();
 		if (rxdr) {
-			n = radio_recv(msg, WDLEN);
-			msg[n] = '\0';
-			rxdr = 0;
-			xor(KEY, msg, key, WDLEN);
-			// check btn press
-			xor(key, LOCK, msg, WDLEN);
-			radio_sendto(txaddr, msg, WDLEN);
-			await_reply();
-			if (rxdr) {
-				n = radio_recv(msg, WDLEN);
-				msg[n] = '\0';
+			uart_write_line("reply received");
+			n = radio_recv(buf, WDLEN);
+			buf[n] = '\0';
+			if (n > 0) {
 				rxdr = 0;
-				uart_write_line(msg);
-			} else {
-				// power down
-				uart_write_line("ERROR: no reply");
+				xor(KEY, buf, key, WDLEN);
+				xor(key, MSG, msg, WDLEN);
+				radio_sendto(txaddr, msg, WDLEN);
+				await_reply();
+				if (rxdr) {
+					n = radio_recv(buf, WDLEN);
+					buf[n] = '\0';
+					rxdr = 0;
+					xor(key, buf, msg, WDLEN);
+					uart_write_line(msg);
+				} else {
+					// power down
+					uart_write_line("ERROR: no reply");
+				}
 			}
 		} else {
 			// power down

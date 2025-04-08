@@ -38,7 +38,7 @@ static uint8_t charslen = sizeof(chars) / sizeof(chars[0]);
 
 static inline void await_reply(void)
 {
-	uint8_t i;
+	int i;
 
 	radio_listen();
 	for (i = 0; i < 500 && rxdr == 0; i += 100)
@@ -74,9 +74,7 @@ int main(void)
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 83 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 82 };
 
-	char buf[WDLEN + 1];
-	char key[WDLEN + 1];
-	char msg[WDLEN + 1];
+	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
 
 	RX_DDR &= ~(1 << RX_PIN);
 	RX_PORT |= (1 << RX_PIN); 
@@ -96,7 +94,11 @@ int main(void)
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';
 			rxdr = 0;
+
 			xor(KEY, buf, msg, WDLEN);
+			uart_write("DEBUG: msg recv = ");
+			uart_write_line(msg);
+
 			if (strncmp(msg, SYN, WDLEN) == 0) {
 				keygen(key, WDLEN);
 				uart_write("DEBUG: session key = ");
@@ -105,19 +107,17 @@ int main(void)
 				xor(KEY, key, msg, WDLEN);
 				radio_sendto(txaddr, msg, WDLEN);
 				await_reply();
+
 				if (rxdr) {
 					n = radio_recv(buf, WDLEN);
 					buf[n] = '\0';
 					rxdr = 0;
 					xor(key, buf, msg, WDLEN);
-					if (strncmp(msg, LOCK, WDLEN) == 0) {
-						uart_write_line("LOCKED");
-					} else if (strncmp(msg, UNLOCK, WDLEN) == 0) {
-						uart_write_line("UNLOCKED");
-					} else {
-						uart_write("ERROR: unknown message ");
-						uart_write_line(msg);
-					}
+					uart_write("DEBUG: msg = ");
+					uart_write_line(msg);
+
+					xor(key, ACK, msg, WDLEN);
+					radio_sendto(txaddr, msg, WDLEN);
 				}
 			} else {
 				uart_write_line("ERROR: handshake failed");

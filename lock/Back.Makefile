@@ -1,6 +1,6 @@
 CC = avr-gcc
 MCU = atmega328p
-TARGET = sender
+TARGET = back
 
 SRC = back.c uart.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
