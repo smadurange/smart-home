@@ -191,7 +191,7 @@ void radio_print_config(void)
 		uart_write_line(s);
 	}
 
-	read_reg_bulk(0x0A, addr, ADDRLEN);
+	read_reg_bulk(0x0B, addr, ADDRLEN);
 	snprintf(s, LEN(s), "\r\n\t0x0A: %d.%d.%d", addr[2], addr[1], addr[0]);
 	uart_write_line(s);
 }
@@ -209,7 +209,7 @@ void radio_init(const uint8_t rxaddr[ADDRLEN])
 
 	write_reg(0x00, 0b00111100);  /* use 2-byte CRC, enable only the rx interrupt  */
 	write_reg(0x01, 0b00111111);  /* enable auto ack on all pipes */
-	write_reg(0x02, 0b00000001);  /* enable rx address on pipe 0 */
+	write_reg(0x02, 0b00000011);  /* enable rx address on pipes 0 and 1 */
 	write_reg(0x03, 0b00000001);  /* set address width to 3 bytes */
 	write_reg(0x04, 0b00101111);  /* 750uS retransmission delay, 15 tries */
 	write_reg(0x05, 0b01110011);  /* use 2.515GHz channel */
@@ -218,7 +218,14 @@ void radio_init(const uint8_t rxaddr[ADDRLEN])
 	write_reg(0x1C, 0b00111111);  /* enable dynamic payload length for all pipes */
 
 	reset_irqs();
-	setaddr(0x0A, rxaddr);
+	setaddr(0x0B, rxaddr);  /* pipe 1 for rx, pipe 0 for auto-ack */
+}
+
+void radio_listen(void)
+{
+	disable_chip();
+	rx_mode();
+	enable_chip();
 }
 
 void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
@@ -276,14 +283,8 @@ void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 		uart_write_line("ERROR: sendto() failed: MAX_RT");
 	}
 
+	// restore config, typically rx mode
 	write_reg(0x00, cfg);
-	_delay_ms(MODCHG_DELAY_MS);
-}
-
-void radio_listen(void)
-{
-	disable_chip();
-	rx_mode();
 	enable_chip();
 }
 
