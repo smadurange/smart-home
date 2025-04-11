@@ -1,8 +1,8 @@
 CC = avr-gcc
 MCU = atmega328p
-TARGET = back
+TARGET = servo
 
-SRC = back.c uart.c nrfm.c util.c
+SRC = servo.c uart.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
