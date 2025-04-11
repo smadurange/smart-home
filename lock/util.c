@@ -26,15 +26,15 @@ void keygen(char *buf, uint8_t n)
 {
 	int i, imax;
 	uint8_t sreg;
-	uint16_t idx; 
+	uint16_t seed; 
 	
 	sreg = SREG;
 	cli();
-	idx = TCNT1; 
+	seed = TCNT1; 
 	SREG = sreg;
 
-	for (i = 0, imax = n - 1; i < imax; i++, idx++)
-		buf[i] = tab[(idx % tablen)];
+	for (i = 0, imax = n - 1; i < imax; i++, seed++)
+		buf[i] = tab[(seed % tablen)];
 	buf[imax] = '\0';
 }
 
