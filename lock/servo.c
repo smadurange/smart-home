@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "nrfm.h"
@@ -55,6 +55,7 @@ int main(void)
 	PCICR |= (1 << RX_PCIE);
 	RX_PCMSK |= (1 << RX_PCINT);
 
+	wdt_init();
 	uart_init();
 	servo_init();
 	radio_init(rxaddr);
@@ -64,6 +65,7 @@ int main(void)
 	radio_listen();
 
 	for (;;) {
+		wdt_reset();
 		if (rxdr) {
 		} else {
 			_delay_ms(2000);

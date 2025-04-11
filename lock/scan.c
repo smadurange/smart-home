@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "nrfm.h"
@@ -22,6 +23,7 @@ int main(void)
 	TCCR1B |= (1 << WGM13) | (1 << CS11);
 	ICR1 = 20000;
 
+	wdt_init();
 	uart_init();
 	radio_init(rxaddr);
 	radio_print_config();
@@ -29,6 +31,8 @@ int main(void)
 	sei();
 
 	for (;;) {
+		wdt_reset();
+		_delay_ms(2000);
 	}
 
 	return 0;

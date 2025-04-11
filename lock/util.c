@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/wdt.h>
 
 #include "util.h"
 
@@ -13,6 +14,13 @@ static char tab[] = {
 };
 
 static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
+
+void wdt_init(void)
+{
+	wdt_reset();
+	WDTCSR |= (1 << WDCE) | (1 << WDE);
+	WDTCSR = (1 << WDE) | (1 << WDP3) | (1 << WDP0);
+}
 
 void keygen(char *buf, uint8_t n)
 {

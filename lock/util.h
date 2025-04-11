@@ -9,6 +9,8 @@
 
 #define WDLEN   32
 
+void wdt_init(void);
+
 void keygen(char *buf, uint8_t n);
 
 void xor(const char *k, const char *s, char *d, uint8_t n);
