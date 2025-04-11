@@ -224,17 +224,16 @@ void radio_init(const uint8_t rxaddr[ADDRLEN])
 void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 {
 	char s[4];
-	uint8_t cfg;
-	int i, j, jmax;
-	uint8_t rv, maxrt, txds;
+	int i, imax;
+	uint8_t cfg, rv, maxrt, txds;
 
 	disable_chip();
 
 	cfg = read_reg(0x00);
 
 	tx_mode();
-	reset_irqs();
 	flush_tx();
+	reset_irqs();
 
 	setaddr(0x10, addr);
 	setaddr(0x0A, addr);
@@ -246,36 +245,35 @@ void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 	uart_write(".");
 	uart_write_line(itoa(addr[2], s, 10));
 
-	for (i = 0; i < n; i += MAXPDLEN) {
-		SPI_PORT &= ~(1 << SPI_SS);
-		SPDR = 0b10100000;
+	imax = n < MAXPDLEN ? n : MAXPDLEN;
+
+	SPI_PORT &= ~(1 << SPI_SS);
+	SPDR = 0b10100000;
+	while (!(SPSR & (1 << SPIF)))
+		;
+	for (i = 0; i < imax; i++) {
+		SPDR = msg[i];
 		while (!(SPSR & (1 << SPIF)))
-			;
-		jmax = i + MAXPDLEN;
-		for (j = i; j < jmax; j++) {
-			SPDR = msg[j];
-			while (!(SPSR & (1 << SPIF)))
-				;
-		}
-		SPI_PORT |= (1 << SPI_SS);
+		;
+	}
+	SPI_PORT |= (1 << SPI_SS);
 
-		enable_chip();
-		_delay_us(12);
-		disable_chip();
+	enable_chip();
+	_delay_us(12);
+	disable_chip();
 
-		txds = 0, maxrt = 0;
-		do {
-			rv = read_reg(0x07);	
-			txds = rv & (1 << 5);
-			maxrt = rv & (1 << 4);
-		} while (txds == 0 && maxrt == 0);
+	txds = 0, maxrt = 0;
+	do {
+		rv = read_reg(0x07);	
+		txds = rv & (1 << 5);
+		maxrt = rv & (1 << 4);
+	} while (txds == 0 && maxrt == 0);
 
-		if (txds)
-			uart_write_line("DEBUG: packet sent");
-		else if (maxrt) {
-			uart_write_line("ERROR: sendto() failed: MAX_RT");
-			break;
-		}
+	if (txds)
+		uart_write_line("DEBUG: packet sent");
+	else if (maxrt) {
+		reset_irqs();
+		uart_write_line("ERROR: sendto() failed: MAX_RT");
 	}
 
 	write_reg(0x00, cfg);
@@ -284,13 +282,15 @@ void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 
 void radio_listen(void)
 {
+	disable_chip();
 	rx_mode();
 	enable_chip();
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)
 {
-	uint8_t readlen, pdlen, maxlen;
+	char s[3];
+	int readlen, pdlen, readmax;
 
 	pdlen = 0;
 	disable_chip();
@@ -302,6 +302,10 @@ uint8_t radio_recv(char *buf, uint8_t n)
 		uart_write_line("ERROR: PDLEN = 0, abort read");
 		return 0;
 	}
+	
+	itoa(pdlen, s, 10);
+	uart_write("DEBUG: PDLEN=");
+	uart_write_line(s);
 
 	if (pdlen > MAXPDLEN) {
 		flush_rx();
@@ -310,13 +314,13 @@ uint8_t radio_recv(char *buf, uint8_t n)
 		return 0;
 	}
 
-	maxlen = pdlen < n ? pdlen : n;
+	readmax = (n - 1) < pdlen ? (n - 1) : pdlen;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0b01100001;
 	while (!(SPSR & (1 << SPIF)))
 		;
-	for (readlen = 0; readlen < maxlen && SPDR; readlen++) {
+	for (readlen = 0; readlen <= readmax; readlen++) {
 		SPDR = NOP;
 		while (!(SPSR & (1 << SPIF)))
 			;
@@ -328,5 +332,6 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	reset_irqs();
 	enable_chip();
 	
-	return readlen;
+	return readlen - 1;
 }
+
