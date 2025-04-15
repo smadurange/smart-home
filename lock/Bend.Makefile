@@ -1,8 +1,8 @@
 CC = avr-gcc
 MCU = atmega328p
-TARGET = scan
+TARGET = bend
 
-SRC = scan.c uart.c nrfm.c util.c
+SRC = bend.c uart.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
