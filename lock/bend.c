@@ -45,6 +45,7 @@ static char tab[] = {
 
 static uint8_t syn = 0;
 static volatile uint8_t rxdr = 0;
+static volatile uint8_t btn_press = 0;
 static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
 
 static inline void keygen(char *buf, uint8_t n)
@@ -129,7 +130,6 @@ int main(void)
 			_delay_ms(500);
 
 		if (rxdr) {
-			rxdr = 0;
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
 			if (!syn) {
@@ -149,6 +149,15 @@ int main(void)
 					unlock();
 				keydel(buf, WDLEN);
 			}
+			rxdr = 0;
+		}
+
+		if (btn_press) {
+			if (is_btn_pressed(BTN_PIN, LOCK_BTN))
+				lock();
+			else if (is_btn_pressed(BTN_PIN, UNLOCK_BTN))
+				unlock();
+			btn_press = 0;
 		}
 
 		// todo: sleep
@@ -163,8 +172,5 @@ ISR(RX_PCINTVEC)
 
 ISR(BTN_PCINTVEC)
 {
-	if (is_btn_pressed(BTN_PIN, LOCK_BTN))
-		lock();
-	else if (is_btn_pressed(BTN_PIN, UNLOCK_BTN))
-		unlock();
+	btn_press = 1;
 }
