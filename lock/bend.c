@@ -11,22 +11,28 @@
 #include "uart.h"
 #include "util.h"
 
-#define PWM_MIN      500
-#define PWM_MID      1500
-#define PWM_MAX      2500
-#define PWM_TOP      20000
+#define PWM_MIN            500
+#define PWM_MID            1500
+#define PWM_MAX            2500
+#define PWM_TOP            20000
 
-#define SERVO_PIN    PB1
-#define LOCK_BTN     PD6
-#define UNLOCK_BTN   PD7
+#define SERVO_PIN          PB1
 
-#define RX_PIN       PD7
-#define RX_DDR       DDRD
-#define RX_PORT      PORTD
-#define RX_PCIE      PCIE2
-#define RX_PCINT     PCINT23
-#define RX_PCMSK     PCMSK2
-#define RX_PCINTVEC  PCINT2_vect
+#define BTN_PIN            PINC
+#define BTN_PCIE           PCIE1
+#define BTN_PCINTVEC       PCINT1_vect
+#define LOCK_BTN           PD6
+#define UNLOCK_BTN         PD7
+#define LOCK_BTN_PCINT     PCINT12
+#define UNLOCK_BTN_PCINT   PCINT13
+
+#define RX_PIN             PD7
+#define RX_DDR             DDRD
+#define RX_PORT            PORTD
+#define RX_PCIE            PCIE2
+#define RX_PCINT           PCINT23
+#define RX_PCMSK           PCMSK2
+#define RX_PCINTVEC        PCINT2_vect
 
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',
@@ -65,6 +71,14 @@ static inline void keydel(char *buf, uint8_t n)
 		buf[i] = 0;
 }
 
+static inline void btn_init(void)
+{
+	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
+	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
+	PCICR |= (1 << BTN_PCIE);
+	PCMSK2 |= ((1 << LOCK_BTN_PCINT) | (1 << UNLOCK_BTN_PCINT));
+}
+
 static inline void servo_init(void)
 {
 	DDRB |= (1 << SERVO_PIN);
@@ -72,9 +86,20 @@ static inline void servo_init(void)
 	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
 	TCCR1B |= (1 << WGM13) | (1 << CS11);
 	ICR1 = PWM_TOP;
+}
 
-	DDRD &= ~((1 << LOCK_BTN) | (1 << UNLOCK_BTN));
-	PORTD |= (1 << LOCK_BTN) | (1 << UNLOCK_BTN);
+static inline void lock(void)
+{
+	OCR1A = PWM_MID;
+	_delay_ms(100);
+	OCR1A = PWM_TOP;
+}
+
+static inline void unlock(void)
+{
+	OCR1A = PWM_MAX - 50;
+	_delay_ms(100);
+	OCR1A = PWM_TOP;
 }
 
 int main(void)
@@ -91,6 +116,7 @@ int main(void)
 	RX_PCMSK |= (1 << RX_PCINT);
 
 	uart_init();
+	btn_init();
 	servo_init();
 	radio_init(rxaddr);
 	radio_print_config();
@@ -99,6 +125,9 @@ int main(void)
 	radio_listen();
 
 	for (;;) {
+		if (!rxdr)
+			_delay_ms(500);
+
 		if (rxdr) {
 			rxdr = 0;
 			n = radio_recv(buf, WDLEN);
@@ -106,24 +135,23 @@ int main(void)
 			if (!syn) {
 				xor(KEY, buf, msg, WDLEN);
 				if (strncmp(msg, SYN, WDLEN) == 0) {
+					syn = 1;
 					keygen(key, WDLEN + 1);
 					xor(KEY, key, buf, WDLEN);
 					radio_sendto(txaddr, buf, WDLEN);
-					syn = 1;
 				}
 			} else {
 				syn = 0;
 				xor(key, buf, msg, WDLEN);
-				if (strncmp(msg, LOCK, WDLEN) == 0) {
-					// todo: lock
-				} else if (strncmp(msg, UNLOCK, WDLEN) == 0) {
-					// todo: unlock
-				}
+				if (strncmp(msg, LOCK, WDLEN) == 0)
+					lock();
+				else if (strncmp(msg, UNLOCK, WDLEN) == 0)
+					unlock();
 				keydel(buf, WDLEN);
 			}
-		} else {
-			// todo: sleep
 		}
+
+		// todo: sleep
 	}
 	return 0;
 }
@@ -131,4 +159,12 @@ int main(void)
 ISR(RX_PCINTVEC)
 {
 	rxdr = 1;
+}
+
+ISR(BTN_PCINTVEC)
+{
+	if (is_btn_pressed(BTN_PIN, LOCK_BTN))
+		lock();
+	else if (is_btn_pressed(BTN_PIN, UNLOCK_BTN))
+		unlock();
 }

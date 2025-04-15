@@ -10,6 +10,8 @@
 
 #define WDLEN   32
 
+int is_btn_pressed(uint8_t pin, uint8_t btn);
+
 void xor(const char *k, const char *s, char *d, uint8_t n);
 
 #endif /* MY_UTIL_H */
