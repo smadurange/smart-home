@@ -37,7 +37,7 @@ static char tab[] = {
 	'P', 'f', ':', 'B', ']', 'Y', '^', 'F', '%', 'C', 'x'
 };
 
-static uint8_t syn = 0;
+static uint8_t synced = 0;
 static volatile uint8_t rxd = 0;
 static volatile uint8_t islock = 0;
 static volatile uint8_t isunlock = 0;
@@ -133,16 +133,15 @@ int main(void)
 		if (rxd) {
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
-			if (!syn) {
+			if (!synced) {
 				xor(KEY, buf, msg, WDLEN);
 				if (strncmp(msg, SYN, WDLEN) == 0) {
-					syn = 1;
 					keygen(key, WDLEN + 1);
 					xor(KEY, key, buf, WDLEN);
-					radio_sendto(txaddr, buf, WDLEN);
+					synced = radio_sendto(txaddr, buf, WDLEN);
 				}
 			} else {
-				syn = 0;
+				synced = 0;
 				xor(key, buf, msg, WDLEN);
 				if (strncmp(msg, LOCK, WDLEN) == 0)
 					lock();
