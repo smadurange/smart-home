@@ -37,11 +37,12 @@ static char tab[] = {
 	'P', 'f', ':', 'B', ']', 'Y', '^', 'F', '%', 'C', 'x'
 };
 
-static uint8_t synced = 0;
+static uint8_t sync = 0;
+static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
+
 static volatile uint8_t rxd = 0;
 static volatile uint8_t islock = 0;
 static volatile uint8_t isunlock = 0;
-static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
 
 static inline void keygen(char *buf, uint8_t n)
 {
@@ -133,15 +134,15 @@ int main(void)
 		if (rxd) {
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
-			if (!synced) {
+			if (!sync) {
 				xor(KEY, buf, msg, WDLEN);
 				if (strncmp(msg, SYN, WDLEN) == 0) {
 					keygen(key, WDLEN + 1);
 					xor(KEY, key, buf, WDLEN);
-					synced = radio_sendto(txaddr, buf, WDLEN);
+					sync = radio_sendto(txaddr, buf, WDLEN);
 				}
 			} else {
-				synced = 0;
+				sync = 0;
 				xor(key, buf, msg, WDLEN);
 				if (strncmp(msg, LOCK, WDLEN) == 0)
 					lock();

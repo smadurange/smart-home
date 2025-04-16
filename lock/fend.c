@@ -21,7 +21,7 @@
 #define RX_PCMSK      PCMSK2
 #define RX_PCINTVEC   PCINT2_vect
 
-uint8_t synced = 0;
+uint8_t sync = 0;
 static volatile uint8_t rxd = 0;
 static volatile uint8_t islock = 0;
 static volatile uint8_t isunlock = 0;
@@ -61,17 +61,17 @@ int main(void)
 	sei();
 
 	for (;;) {
-		if ((islock || isunlock) && !synced) {
+		if ((islock || isunlock) && !sync) {
 			xor(KEY, SYN, buf, WDLEN);
 			do {
-				synced = radio_sendto(txaddr, buf, WDLEN);
+				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(10);
-			} while (!synced);
-			synced = 1;
+			} while (!sync);
+			sync = 1;
 		}
 
 		if (rxd) {
-			if (synced) {
+			if (sync) {
 				n = radio_recv(buf, WDLEN);
 				buf[n] = '\0';
 				xor(KEY, buf, key, WDLEN);
@@ -83,7 +83,9 @@ int main(void)
 					xor(key, UNLOCK, buf, WDLEN);
 				}
 				radio_sendto(txaddr, buf, WDLEN);
-				synced = 0;
+				sync = 0;
+			} else {
+				radio_flush_rx();
 			}
 			rxd = 0;
 		}
