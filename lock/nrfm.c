@@ -228,7 +228,10 @@ void radio_listen(void)
 	enable_chip();
 }
 
-void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
+uint8_t radio_sendto(
+	const uint8_t addr[ADDRLEN], 
+	const char *msg, 
+	uint8_t n)
 {
 	char s[4];
 	int i, imax;
@@ -283,9 +286,9 @@ void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 		uart_write_line("ERROR: sendto() failed: MAX_RT");
 	}
 
-	// restore config, typically rx mode
 	write_reg(0x00, cfg);
 	enable_chip();
+	return txds;
 }
 
 uint8_t radio_recv(char *buf, uint8_t n)

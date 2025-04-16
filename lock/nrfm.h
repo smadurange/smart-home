@@ -14,6 +14,6 @@ void radio_listen(void);
 
 uint8_t radio_recv(char *buf, uint8_t n);
 
-void radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n);
+uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n);
 
 #endif /* NRFM_H */
