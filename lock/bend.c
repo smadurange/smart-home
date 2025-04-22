@@ -117,16 +117,16 @@ int main(void)
 
 	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
 
-	//init_rx();
+	init_rx();
 	init_btns();
 	init_servo();
 
 	uart_init();
-	//radio_init(rxaddr);
-	//radio_print_config();
+	radio_init(rxaddr);
+	radio_print_config();
 
 	sei();
-	//radio_listen();
+	radio_listen();
 
 	uart_write_line("reset...");
 
