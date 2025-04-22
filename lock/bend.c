@@ -4,7 +4,6 @@
 #include <string.h>
 
 #include <avr/interrupt.h>
-#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "nrfm.h"
@@ -89,9 +88,9 @@ static inline void init_servo(void)
 {
 	DDRB |= (1 << SERVO_PIN);
 
-	ICR1 = PWM_TOP;
 	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
 	TCCR1B |= (1 << WGM13) | (1 << CS11);
+	ICR1 = PWM_TOP;
 }
 
 static inline void lock(void)
@@ -99,6 +98,7 @@ static inline void lock(void)
 	OCR1A = PWM_MID;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
+	uart_write_line("locked");
 }
 
 static inline void unlock(void)
@@ -106,6 +106,7 @@ static inline void unlock(void)
 	OCR1A = PWM_MAX - 50;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
+	uart_write_line("unlocked");
 }
 
 int main(void)
@@ -116,16 +117,18 @@ int main(void)
 
 	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
 
-	init_rx();
+	//init_rx();
 	init_btns();
 	init_servo();
 
 	uart_init();
-	radio_init(rxaddr);
-	radio_print_config();
+	//radio_init(rxaddr);
+	//radio_print_config();
 
 	sei();
-	radio_listen();
+	//radio_listen();
+
+	uart_write_line("reset...");
 
 	for (;;) {
 		if (!rxd)
