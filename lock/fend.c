@@ -12,6 +12,7 @@
 #include "util.h"
 
 #define LOCK_PIN      PD2
+#define UNLOCK_PIN    PD3
 
 #define RX_PIN        PD7
 #define RX_DDR        DDRD
@@ -36,11 +37,11 @@ static inline void init_rx(void)
 
 static inline void init_btns(void)
 {
-	DDRD &= ~(1 << LOCK_PIN);
-	PORTD |= (1 << LOCK_PIN);
+	DDRD &= ~((1 << LOCK_PIN) | (1 << UNLOCK_PIN));
+	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN));
 
 	EICRA = 0b00000000;
-	EIMSK = (1 << INT0);
+	EIMSK = (1 << INT0) | (1 << INT1);
 }
 
 int main(void)
@@ -62,6 +63,7 @@ int main(void)
 
 	for (;;) {
 		if ((islock || isunlock) && !sync) {
+			sync = 1;
 			xor(KEY, SYN, buf, WDLEN);
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
@@ -100,5 +102,14 @@ ISR(RX_PCINTVEC)
 
 ISR(INT0_vect)
 {
-	islock = 1;
+	if (is_btn_pressed(PIND, LOCK_PIN))
+		islock = 1;
+	uart_write_line(" start lock");
+}
+
+ISR(INT1_vect)
+{
+	if (is_btn_pressed(PIND, UNLOCK_PIN))
+		isunlock = 1;
+	uart_write_line("start unlock");
 }
