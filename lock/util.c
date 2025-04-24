@@ -7,7 +7,7 @@
 int is_btn_pressed(uint8_t pin, uint8_t btn)
 {
 	if (!((pin >> btn) & 0x01)) {
-		_delay_us(2000);
+		_delay_ms(100);
 		return !((pin >> btn) & 0x01);
 	}
 	return 0;
