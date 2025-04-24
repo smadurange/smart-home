@@ -63,13 +63,13 @@ int main(void)
 
 	for (;;) {
 		if ((islock || isunlock) && !sync) {
-			sync = 1;
 			xor(KEY, SYN, buf, WDLEN);
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(10);
 			} while (!sync);
 			sync = 1;
+			uart_write_line("sent syn");
 		}
 
 		if (rxd) {
@@ -77,6 +77,7 @@ int main(void)
 				n = radio_recv(buf, WDLEN);
 				buf[n] = '\0';
 				xor(KEY, buf, key, WDLEN);
+				uart_write_line("read key");
 				if (islock) {
 					islock = 0;
 					xor(key, LOCK, buf, WDLEN);
@@ -86,6 +87,7 @@ int main(void)
 				}
 				radio_sendto(txaddr, buf, WDLEN);
 				sync = 0;
+				uart_write_line("sent command");
 			} else {
 				radio_flush_rx();
 			}
@@ -104,12 +106,10 @@ ISR(INT0_vect)
 {
 	if (is_btn_pressed(PIND, LOCK_PIN))
 		islock = 1;
-	uart_write_line(" start lock");
 }
 
 ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN))
 		isunlock = 1;
-	uart_write_line("start unlock");
 }

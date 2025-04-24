@@ -1,6 +1,7 @@
 /* Lock back, connected to the servo */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <avr/interrupt.h>
@@ -86,27 +87,14 @@ static inline void init_btns(void)
 
 static inline void init_servo(void)
 {
-	DDRB |= (1 << SERVO_PIN);
-
-	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
-	TCCR1B |= (1 << WGM13) | (1 << CS11);
-	ICR1 = PWM_TOP;
 }
 
 static inline void lock(void)
 {
-	OCR1A = PWM_MID;
-	_delay_ms(100);
-	OCR1A = PWM_TOP;
-	uart_write_line("locked");
 }
 
 static inline void unlock(void)
 {
-	OCR1A = PWM_MAX - 50;
-	_delay_ms(100);
-	OCR1A = PWM_TOP;
-	uart_write_line("unlocked");
 }
 
 int main(void)
@@ -115,6 +103,7 @@ int main(void)
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 83 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 82 };
 
+	char s[3]; s[2] = 0;
 	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
 
 	init_rx();
@@ -137,12 +126,19 @@ int main(void)
 		if (rxd) {
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
+			uart_write("recv: ");
+			uart_write(buf);
+			itoa(n, s, 10);
+			uart_write(s);
+			uart_write_line(" bytes");
 			if (!sync) {
 				xor(KEY, buf, msg, WDLEN);
 				if (strncmp(msg, SYN, WDLEN) == 0) {
 					keygen(key, WDLEN + 1);
 					xor(KEY, key, buf, WDLEN);
 					sync = radio_sendto(txaddr, buf, WDLEN);
+				} else {
+					uart_write_line("not syn");
 				}
 			} else {
 				sync = 0;

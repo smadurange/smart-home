@@ -319,13 +319,13 @@ uint8_t radio_recv(char *buf, uint8_t n)
 		return 0;
 	}
 
-	readmax = (n - 1) < pdlen ? (n - 1) : pdlen;
+	readmax = n < pdlen ? n : pdlen;
 
 	SPI_PORT &= ~(1 << SPI_SS);
 	SPDR = 0b01100001;
 	while (!(SPSR & (1 << SPIF)))
 		;
-	for (readlen = 0; readlen <= readmax; readlen++) {
+	for (readlen = 0; readlen < readmax; readlen++) {
 		SPDR = NOP;
 		while (!(SPSR & (1 << SPIF)))
 			;
