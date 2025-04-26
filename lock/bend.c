@@ -94,7 +94,7 @@ static inline void init_servo(void)
 static inline void lock(void)
 {
 	OCR1A = PWM_MID;
-	_delay_ms(100);
+	_delay_ms(20);
 	OCR1A = PWM_TOP;
 	uart_write_line("locked");
 }
@@ -102,7 +102,7 @@ static inline void lock(void)
 static inline void unlock(void)
 {
 	OCR1A = PWM_MAX - 50;
-	_delay_ms(100);
+	_delay_ms(20);
 	OCR1A = PWM_TOP;
 	uart_write_line("unlocked");
 }
