@@ -38,11 +38,8 @@ static char tab[] = {
 };
 
 static uint8_t sync = 0;
-static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
-
 static volatile uint8_t rxd = 0;
-static volatile uint8_t islock = 0;
-static volatile uint8_t isunlock = 0;
+static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
 
 static inline void keygen(char *buf, uint8_t n)
 {
@@ -87,14 +84,27 @@ static inline void init_btns(void)
 
 static inline void init_servo(void)
 {
+	ICR1 = PWM_TOP;
+	TCCR1A |= (1 << WGM11) | (1 << COM1A1);
+	TCCR1B |= (1 << WGM13) | (1 << CS11);
+
+	DDRB |= (1 << SERVO_PIN);
 }
 
 static inline void lock(void)
 {
+	OCR1A = PWM_MID;
+	_delay_ms(100);
+	OCR1A = PWM_TOP;
+	uart_write_line("locked");
 }
 
 static inline void unlock(void)
 {
+	OCR1A = PWM_MAX - 50;
+	_delay_ms(100);
+	OCR1A = PWM_TOP;
+	uart_write_line("unlocked");
 }
 
 int main(void)
@@ -151,14 +161,6 @@ int main(void)
 			}
 			rxd = 0;
 		}
-
-		if (islock) {
-			lock();
-			islock = 0;
-		} else if (isunlock) {
-			unlock();
-			isunlock = 0;
-		}
 	}
 	return 0;
 }
@@ -171,11 +173,11 @@ ISR(RX_PCINTVEC)
 ISR(INT0_vect)
 {
 	if (is_btn_pressed(PIND, LOCK_PIN))
-		islock = 1;
+		lock();
 }
 
 ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN))
-		isunlock = 1;
+		unlock();
 }
