@@ -4,7 +4,6 @@
 #include <stdlib.h>
 
 #include <avr/interrupt.h>
-#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "nrfm.h"
