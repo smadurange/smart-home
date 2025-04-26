@@ -16,8 +16,8 @@
 #define SPI_PORT          PORTB
 
 #define NRF_CE            PC0  
-#define NRF_CE_DDR        DDRC  
-#define NRF_CE_PORT       PORTC 
+#define NRF_CE_DDR        DDRC
+#define NRF_CE_PORT       PORTC
 
 #define NOP               0xFF
 #define R_REGISTER        0x1F
@@ -196,7 +196,7 @@ void radio_print_config(void)
 	}
 
 	read_reg_bulk(0x0B, addr, ADDRLEN);
-	snprintf(s, LEN(s), "\r\n\t0x0A: %d.%d.%d", addr[2], addr[1], addr[0]);
+	snprintf(s, LEN(s), "\r\n\t0x0B: %d.%d.%d", addr[2], addr[1], addr[0]);
 	uart_write_line(s);
 }
 
@@ -232,10 +232,7 @@ void radio_listen(void)
 	enable_chip();
 }
 
-uint8_t radio_sendto(
-	const uint8_t addr[ADDRLEN], 
-	const char *msg, 
-	uint8_t n)
+uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 {
 	char s[4];
 	int i, imax;
@@ -285,10 +282,11 @@ uint8_t radio_sendto(
 	if (txds)
 		uart_write_line("DEBUG: packet sent");
 	else if (maxrt) {
-		reset_irqs();
+		flush_tx();
 		uart_write_line("ERROR: sendto() failed: MAX_RT");
 	}
 
+	// restore config, typically rx mode
 	write_reg(0x00, cfg);
 	enable_chip();
 	return txds;
@@ -335,6 +333,5 @@ uint8_t radio_recv(char *buf, uint8_t n)
 
 	radio_flush_rx();
 	enable_chip();
-	return readlen - 1;
+	return readlen;
 }
-
