@@ -62,8 +62,9 @@ int main(void)
 
 	for (;;) {
 		if (islock) {
+			xor(KEY, LOCK, buf, WDLEN);
 			do {
-				sync = radio_sendto(txaddr, LOCK, WDLEN);
+				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(50);
 			} while (!sync);
 			sync = 0;
@@ -72,8 +73,9 @@ int main(void)
 		}
 
 		if (isunlock) {
+			xor(KEY, UNLOCK, buf, WDLEN);
 			do {
-				sync = radio_sendto(txaddr, UNLOCK, WDLEN);
+				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(50);
 			} while (!sync);
 			sync = 0;

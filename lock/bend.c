@@ -134,11 +134,12 @@ int main(void)
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
 			rxd = 0;
+			xor(KEY, buf, msg, WDLEN + 1);
 			uart_write("recv: ");
-			uart_write(buf);
-			if (strncmp(buf, LOCK, WDLEN) == 0)
+			uart_write(msg);
+			if (strncmp(msg, LOCK, WDLEN) == 0)
 				lock();
-			else if (strncmp(buf, UNLOCK, WDLEN) == 0)
+			else if (strncmp(msg, UNLOCK, WDLEN) == 0)
 				unlock();
 		}
 	}
