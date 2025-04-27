@@ -130,36 +130,16 @@ int main(void)
 	uart_write_line("reset...");
 
 	for (;;) {
-		if (!rxd)
-			_delay_ms(500);
-
 		if (rxd) {
 			n = radio_recv(buf, WDLEN);
 			buf[n] = '\0';	
+			rxd = 0;
 			uart_write("recv: ");
 			uart_write(buf);
-			itoa(n, s, 10);
-			uart_write(s);
-			uart_write_line(" bytes");
-			if (!sync) {
-				xor(KEY, buf, msg, WDLEN);
-				if (strncmp(msg, SYN, WDLEN) == 0) {
-					keygen(key, WDLEN + 1);
-					xor(KEY, key, buf, WDLEN);
-					sync = radio_sendto(txaddr, buf, WDLEN);
-				} else {
-					uart_write_line("not syn");
-				}
-			} else {
-				sync = 0;
-				xor(key, buf, msg, WDLEN);
-				if (strncmp(msg, LOCK, WDLEN) == 0)
-					lock();
-				else if (strncmp(msg, UNLOCK, WDLEN) == 0)
-					unlock();
-				keydel(buf, WDLEN);
-			}
-			rxd = 0;
+			if (strncmp(buf, LOCK, WDLEN) == 0)
+				lock();
+			else if (strncmp(buf, UNLOCK, WDLEN) == 0)
+				unlock();
 		}
 	}
 	return 0;

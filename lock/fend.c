@@ -61,36 +61,24 @@ int main(void)
 	sei();
 
 	for (;;) {
-		if ((islock || isunlock) && !sync) {
-			xor(KEY, SYN, buf, WDLEN);
+		if (islock) {
 			do {
-				sync = radio_sendto(txaddr, buf, WDLEN);
-				_delay_ms(10);
+				sync = radio_sendto(txaddr, LOCK, WDLEN);
+				_delay_ms(50);
 			} while (!sync);
-			sync = 1;
-			uart_write_line("sent syn");
+			sync = 0;
+			islock = 0;
+			uart_write_line("sent LOCK");
 		}
 
-		if (rxd) {
-			if (sync) {
-				n = radio_recv(buf, WDLEN);
-				buf[n] = '\0';
-				xor(KEY, buf, key, WDLEN);
-				uart_write_line("read key");
-				if (islock) {
-					islock = 0;
-					xor(key, LOCK, buf, WDLEN);
-				} else if (isunlock) {
-					isunlock = 0;
-					xor(key, UNLOCK, buf, WDLEN);
-				}
-				radio_sendto(txaddr, buf, WDLEN);
-				sync = 0;
-				uart_write_line("sent command");
-			} else {
-				radio_flush_rx();
-			}
-			rxd = 0;
+		if (isunlock) {
+			do {
+				sync = radio_sendto(txaddr, UNLOCK, WDLEN);
+				_delay_ms(50);
+			} while (!sync);
+			sync = 0;
+			isunlock = 0;
+			uart_write_line("sent UNLOCK");
 		}
 	}
 	return 0;
