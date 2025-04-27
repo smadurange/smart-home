@@ -45,11 +45,10 @@ static inline void init_btns(void)
 
 int main(void)
 {
-	uint8_t n;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
-	char buf[WDLEN + 1], key[WDLEN + 1];
+	char buf[WDLEN], key[WDLEN];
 
 	init_rx();
 	init_btns();

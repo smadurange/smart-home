@@ -1,7 +1,6 @@
 /* Lock back, connected to the servo */
 
 #include <stdint.h>
-#include <stdlib.h>
 #include <string.h>
 
 #include <avr/interrupt.h>
@@ -109,12 +108,10 @@ static inline void unlock(void)
 
 int main(void)
 {
-	uint8_t n;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 83 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 82 };
 
-	char s[3]; s[2] = 0;
-	char buf[WDLEN + 1], key[WDLEN + 1], msg[WDLEN + 1];
+	char buf[WDLEN], key[WDLEN], msg[WDLEN];
 
 	init_rx();
 	init_btns();
@@ -127,19 +124,14 @@ int main(void)
 	sei();
 	radio_listen();
 
-	uart_write_line("reset...");
-
 	for (;;) {
 		if (rxd) {
-			n = radio_recv(buf, WDLEN);
-			buf[n] = '\0';	
+			radio_recv(buf, WDLEN);
 			rxd = 0;
-			xor(KEY, buf, msg, WDLEN + 1);
-			uart_write("recv: ");
-			uart_write(msg);
-			if (strncmp(msg, LOCK, WDLEN) == 0)
+			xor(KEY, buf, msg, WDLEN);
+			if (memcmp(msg, LOCK, WDLEN) == 0)
 				lock();
-			else if (strncmp(msg, UNLOCK, WDLEN) == 0)
+			else if (memcmp(msg, UNLOCK, WDLEN) == 0)
 				unlock();
 		}
 	}
