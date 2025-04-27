@@ -36,7 +36,6 @@ static char tab[] = {
 	'P', 'f', ':', 'B', ']', 'Y', '^', 'F', '%', 'C', 'x'
 };
 
-static uint8_t sync = 0;
 static volatile uint8_t rxd = 0;
 static uint16_t tablen = sizeof(tab) / sizeof(tab[0]);
 
@@ -129,10 +128,20 @@ int main(void)
 			radio_recv(buf, WDLEN);
 			rxd = 0;
 			xor(KEY, buf, msg, WDLEN);
-			if (memcmp(msg, LOCK, WDLEN) == 0)
-				lock();
-			else if (memcmp(msg, UNLOCK, WDLEN) == 0)
-				unlock();
+			if (memcmp(msg, SYN, WDLEN) == 0) {
+				keygen(key, WDLEN);
+				xor(KEY, key, buf, WDLEN);
+				radio_sendto(txaddr, buf, WDLEN);
+			} else {
+				xor(key, buf, msg, WDLEN);
+				if (memcmp(msg, LOCK, WDLEN) == 0) {
+					lock();
+					keydel(key, WDLEN);
+				} else if (memcmp(msg, UNLOCK, WDLEN) == 0) {
+					unlock();
+					keydel(key, WDLEN);
+				}
+			}
 		}
 	}
 	return 0;

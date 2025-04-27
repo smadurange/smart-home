@@ -21,8 +21,8 @@
 #define RX_PCMSK      PCMSK2
 #define RX_PCINTVEC   PCINT2_vect
 
-uint8_t sync = 0;
 static volatile uint8_t rxd = 0;
+static volatile uint8_t sync = 0;
 static volatile uint8_t islock = 0;
 static volatile uint8_t isunlock = 0;
 
@@ -45,6 +45,7 @@ static inline void init_btns(void)
 
 int main(void)
 {
+	uint8_t n;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
@@ -58,28 +59,33 @@ int main(void)
 	radio_print_config();
 
 	sei();
+	radio_listen();
 
 	for (;;) {
-		if (islock) {
-			xor(KEY, LOCK, buf, WDLEN);
+		if (!sync && (islock || isunlock)) {
+			xor(KEY, SYN, buf, WDLEN);
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(50);
 			} while (!sync);
-			sync = 0;
-			islock = 0;
-			uart_write_line("sent LOCK");
+			uart_write_line("sent SYN");
 		}
 
-		if (isunlock) {
-			xor(KEY, UNLOCK, buf, WDLEN);
-			do {
-				sync = radio_sendto(txaddr, buf, WDLEN);
-				_delay_ms(50);
-			} while (!sync);
-			sync = 0;
-			isunlock = 0;
-			uart_write_line("sent UNLOCK");
+		if (rxd) {
+			n = radio_recv(buf, WDLEN);
+			rxd = 0;
+			if (sync && (islock || isunlock)) {
+				sync = 0;
+				xor(KEY, buf, key, WDLEN);
+				if (islock) {
+					islock = 0;
+					xor(key, LOCK, buf, WDLEN);
+				} else if (isunlock) {
+					isunlock = 0;
+					xor(key, UNLOCK, buf, WDLEN);
+				}
+				radio_sendto(txaddr, buf, WDLEN);
+			}
 		}
 	}
 	return 0;
@@ -92,12 +98,16 @@ ISR(RX_PCINTVEC)
 
 ISR(INT0_vect)
 {
-	if (is_btn_pressed(PIND, LOCK_PIN))
+	if (is_btn_pressed(PIND, LOCK_PIN)) {
+		sync = 0;
 		islock = 1;
+	}
 }
 
 ISR(INT1_vect)
 {
-	if (is_btn_pressed(PIND, UNLOCK_PIN))
+	if (is_btn_pressed(PIND, UNLOCK_PIN)) {
+		sync = 0;
 		isunlock = 1;
+	}
 }
