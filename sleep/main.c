@@ -1,11 +1,21 @@
 #include <avr/interrupt.h>
 #include <avr/sleep.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
 #include "uart.h"
 
 #define LOCK_PIN      PD2
 #define UNLOCK_PIN    PD3
+
+static inline void init_wdt(void)
+{
+	cli();
+	wdt_reset();
+	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
+	WDTCSR = (1 << WDP2) | (1 << WDP1) | (1 << WDP0);
+	WDTCSR |= (1 << WDIE);
+}
 
 static inline void init_btns(void)
 {
@@ -17,6 +27,7 @@ static inline void init_btns(void)
 
 int main(void)
 {
+	init_wdt();
 	init_btns();
 	uart_init();	
 
@@ -28,9 +39,11 @@ int main(void)
 		sleep_enable();	
 		sleep_bod_disable();
 		sleep_cpu();
+
 		sleep_disable();
-		uart_write_line("It's alive!");
-		_delay_ms(1500);
+		_delay_ms(500); /* wait for start-up */
+		uart_write_line("Doing some work...");
+		_delay_ms(500);
 	}
 	return 0;
 }
@@ -54,4 +67,8 @@ ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN))
 		uart_write_line("Unlocked");
+}
+
+ISR(WDT_vect)
+{
 }
