@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include <avr/wdt.h>
+#include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
@@ -26,6 +28,15 @@ static volatile uint8_t sync = 0;
 static volatile uint8_t islock = 0;
 static volatile uint8_t isunlock = 0;
 
+static inline void wdt_off(void)
+{
+	cli();
+	wdt_reset();
+	MCUSR &= ~(1 << WDRF);
+	WDTCSR |= (1 << WDCE) | (1 << WDE);
+	WDTCSR = 0x00;
+}
+
 static inline void init_rx(void)
 {
 	RX_DDR &= ~(1 << RX_PIN);
@@ -45,12 +56,12 @@ static inline void init_btns(void)
 
 int main(void)
 {
-	uint8_t n;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
 	char buf[WDLEN], key[WDLEN];
 
+	wdt_off();
 	init_rx();
 	init_btns();
 
@@ -68,11 +79,10 @@ int main(void)
 				sync = radio_sendto(txaddr, buf, WDLEN);
 				_delay_ms(50);
 			} while (!sync);
-			uart_write_line("sent SYN");
 		}
 
 		if (rxd) {
-			n = radio_recv(buf, WDLEN);
+			radio_recv(buf, WDLEN);
 			rxd = 0;
 			if (sync && (islock || isunlock)) {
 				sync = 0;
@@ -86,6 +96,15 @@ int main(void)
 				}
 				radio_sendto(txaddr, buf, WDLEN);
 			}
+		}
+
+		if (!sync) {
+			radio_pwr_dwn();
+			sleep_enable();	
+			sleep_bod_disable();
+			sleep_cpu();
+			sleep_disable();
+			radio_listen();
 		}
 	}
 	return 0;
