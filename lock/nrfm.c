@@ -232,6 +232,16 @@ void radio_listen(void)
 	enable_chip();
 }
 
+void radio_pwr_dwn(void)
+{
+	uint8_t rv;
+
+	disable_chip();
+	rv = read_reg(0x00);
+	rv &= ~(1 << PWR_UP);
+	write_reg(0x00, rv);
+}
+
 uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 {
 	char s[4];

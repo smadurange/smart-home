@@ -12,6 +12,8 @@ void radio_print_config(void);
 
 void radio_listen(void);
 
+void radio_pwr_dwn(void);
+
 uint8_t radio_recv(char *buf, uint8_t n);
 
 void radio_flush_rx(void);

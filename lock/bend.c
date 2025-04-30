@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <avr/wdt.h>
+#include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
@@ -63,6 +65,15 @@ static inline void keydel(char *buf, uint8_t n)
 		buf[i] = 0;
 }
 
+static inline void init_wdt(void)
+{
+	cli();
+	wdt_reset();
+	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
+	WDTCSR = (1 << WDP2) | (1 << WDP1) | (1 << WDP0);
+	WDTCSR |= (1 << WDIE);
+}
+
 static inline void init_rx(void)
 {
 	RX_DDR &= ~(1 << RX_PIN);
@@ -112,6 +123,7 @@ int main(void)
 
 	char buf[WDLEN], key[WDLEN], msg[WDLEN];
 
+	init_wdt();
 	init_rx();
 	init_btns();
 	init_servo();
@@ -124,6 +136,9 @@ int main(void)
 	radio_listen();
 
 	for (;;) {
+		if (!rxd)
+			_delay_ms(250);
+
 		if (rxd) {
 			radio_recv(buf, WDLEN);
 			rxd = 0;
@@ -142,6 +157,13 @@ int main(void)
 					keydel(key, WDLEN);
 				}
 			}
+		} else {
+			radio_pwr_dwn();
+			sleep_enable();	
+			sleep_bod_disable();
+			sleep_cpu();
+			sleep_disable();
+			radio_listen();
 		}
 	}
 	return 0;
@@ -162,4 +184,8 @@ ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN))
 		unlock();
+}
+
+ISR(WDT_vect)
+{
 }
