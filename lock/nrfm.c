@@ -178,6 +178,7 @@ static inline uint8_t rx_pdlen(void)
 
 void radio_print_config(void)
 {
+#if DEBUG
 	char s[22];
 	uint8_t i, rv, addr[ADDRLEN];
 
@@ -198,6 +199,7 @@ void radio_print_config(void)
 	read_reg_bulk(0x0B, addr, ADDRLEN);
 	snprintf(s, LEN(s), "\r\n\t0x0B: %d.%d.%d", addr[2], addr[1], addr[0]);
 	uart_write_line(s);
+#endif
 }
 
 void radio_init(const uint8_t rxaddr[ADDRLEN])
@@ -244,7 +246,6 @@ void radio_pwr_dwn(void)
 
 uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 {
-	char s[4];
 	int i, imax;
 	uint8_t cfg, rv, maxrt, txds;
 
@@ -258,12 +259,16 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 	setaddr(0x10, addr);
 	setaddr(0x0A, addr);
 
+#if DEBUG
+	char s[4];
+
 	uart_write("DEBUG: sending to ");
 	uart_write(itoa(addr[0], s, 10));
 	uart_write(".");
 	uart_write(itoa(addr[1], s, 10));
 	uart_write(".");
 	uart_write_line(itoa(addr[2], s, 10));
+#endif
 
 	imax = n < MAXPDLEN ? n : MAXPDLEN;
 
@@ -289,11 +294,15 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 		maxrt = rv & (1 << 4);
 	} while (txds == 0 && maxrt == 0);
 
+#if DEBUG
 	if (txds)
 		uart_write_line("DEBUG: packet sent");
-	else if (maxrt) {
+#endif
+	if (maxrt) {
 		flush_tx();
+#if DEBUG
 		uart_write_line("ERROR: sendto() failed: MAX_RT");
+#endif
 	}
 
 	// restore config, typically rx mode
@@ -304,7 +313,6 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 
 uint8_t radio_recv(char *buf, uint8_t n)
 {
-	char s[3];
 	int readlen, pdlen, readmax;
 
 	pdlen = 0;
@@ -313,17 +321,24 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	pdlen = rx_pdlen();	
 	if (pdlen == 0) {
 		radio_flush_rx();
+#if DEBUG
 		uart_write_line("ERROR: PDLEN = 0, abort read");
+#endif
 		return 0;
 	}
 	
+#if DEBUG
+	char s[3];
 	itoa(pdlen, s, 10);
 	uart_write("DEBUG: PDLEN=");
 	uart_write_line(s);
+#endif
 
 	if (pdlen > MAXPDLEN) {
 		radio_flush_rx();
+#if DEBUG
 		uart_write_line("ERROR: PDLEN > MAXPDLEN, abort read");
+#endif
 		return 0;
 	}
 

@@ -9,7 +9,6 @@
 #include <util/delay.h>
 
 #include "nrfm.h"
-#include "uart.h"
 #include "util.h"
 
 #define LOCK_PIN      PD2
@@ -85,7 +84,6 @@ int main(void)
 	init_leds();
 	init_btns();
 
-	uart_init();
 	radio_init(rxaddr);
 	radio_print_config();
 
