@@ -29,7 +29,7 @@
 #define RX_PCMSK      PCMSK2
 #define RX_PCINTVEC   PCINT2_vect
 
-#define VCC_MIN       4810  /* servo min voltage. */
+#define VCC_MIN       4900
 
 #define LOCK_LED      PC3
 #define UNLOCK_LED    PC4
