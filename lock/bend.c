@@ -29,6 +29,14 @@
 #define RX_PCMSK      PCMSK2
 #define RX_PCINTVEC   PCINT2_vect
 
+#define VCC_MIN       4810  /* servo min voltage. */
+
+#define LOCK_LED      PC3
+#define UNLOCK_LED    PC4
+#define BATLOW_LED    PC5
+#define LED_DDR       DDRC
+#define LED_PORT      PORTC
+
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',
 	'E', '1', 'o', '#', ')', '2', '5', 'q', ';', '.', 'I',
@@ -91,6 +99,16 @@ static inline void init_btns(void)
 	EIMSK = (1 << INT0) | (1 << INT1);
 }
 
+static inline void init_leds(void) 
+{
+	LED_DDR |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
+	LED_DDR |= (1 << BATLOW_LED);
+
+	LED_PORT &= ~(1 << LOCK_LED);
+	LED_PORT &= ~(1 << UNLOCK_LED);
+	LED_PORT &= ~(1 << BATLOW_LED);
+}
+
 static inline void init_servo(void)
 {
 	ICR1 = PWM_TOP;
@@ -105,7 +123,6 @@ static inline void lock(void)
 	OCR1A = PWM_MID;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
-	uart_write_line("locked");
 }
 
 static inline void unlock(void)
@@ -113,7 +130,6 @@ static inline void unlock(void)
 	OCR1A = PWM_MAX - 50;
 	_delay_ms(100);
 	OCR1A = PWM_TOP;
-	uart_write_line("unlocked");
 }
 
 int main(void)
@@ -125,6 +141,7 @@ int main(void)
 
 	init_wdt();
 	init_rx();
+	init_leds();
 	init_btns();
 	init_servo();
 
@@ -176,16 +193,34 @@ ISR(RX_PCINTVEC)
 
 ISR(INT0_vect)
 {
-	if (is_btn_pressed(PIND, LOCK_PIN))
+	if (is_btn_pressed(PIND, LOCK_PIN)) {
 		lock();
+		LED_PORT |= (1 << LOCK_LED);
+		_delay_ms(70);
+		LED_PORT &= ~(1 << LOCK_LED);
+		_delay_ms(70);
+		LED_PORT |= (1 << LOCK_LED);
+		_delay_ms(70);
+		LED_PORT &= ~(1 << LOCK_LED);
+	}
 }
 
 ISR(INT1_vect)
 {
-	if (is_btn_pressed(PIND, UNLOCK_PIN))
+	if (is_btn_pressed(PIND, UNLOCK_PIN)) {
 		unlock();
+		LED_PORT |= (1 << UNLOCK_LED);
+		_delay_ms(70);
+		LED_PORT &= ~(1 << UNLOCK_LED);
+		_delay_ms(70);
+		LED_PORT |= (1 << UNLOCK_LED);
+		_delay_ms(70);
+		LED_PORT &= ~(1 << UNLOCK_LED);
+	}
 }
 
 ISR(WDT_vect)
 {
+	if (getvcc() < VCC_MIN)
+		LED_PORT ^= (1 << BATLOW_LED);
 }

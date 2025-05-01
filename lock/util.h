@@ -14,4 +14,6 @@ int is_btn_pressed(uint8_t pin, uint8_t btn);
 
 void xor(const char *k, const char *s, char *d, uint8_t n);
 
+uint16_t getvcc(void);
+
 #endif /* MY_UTIL_H */
