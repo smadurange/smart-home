@@ -125,10 +125,9 @@ int main(void)
 			}
 
 			radio_pwr_dwn();
-			sleep_enable();	
 			sleep_bod_disable();
-			sleep_cpu();
-			sleep_disable();
+			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+			sleep_mode();
 			radio_listen();
 		}
 	}
