@@ -261,7 +261,6 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 
 #if DEBUG
 	char s[4];
-
 	uart_write("DEBUG: sending to ");
 	uart_write(itoa(addr[0], s, 10));
 	uart_write(".");

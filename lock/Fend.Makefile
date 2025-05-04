@@ -10,8 +10,10 @@ CFLAGS = -std=gnu99
 CFLAGS += -Os
 CFLAGS += -Wall
 CFLAGS += -mmcu=$(MCU)
-CFLAGS += -DBAUD=9600
+CFLAGS += -DBAUD=57600
 CFLAGS += -DF_CPU=16000000UL
+CFLAGS += -DDEBUG=0
+CFLAGS += -DFPM_PWD=$(FPM_PWD)
 CFLAGS += -ffunction-sections -fdata-sections
 
 LDFLAGS = -mmcu=$(MCU)
