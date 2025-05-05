@@ -64,11 +64,11 @@ void led_init(void)
 void led_locked(void)
 {
 	LED_PORT |= (1 << LOCK_LED);
-	_delay_ms(70);
+	_delay_ms(100);
 	LED_PORT &= ~(1 << LOCK_LED);
-	_delay_ms(70);
+	_delay_ms(100);
 	LED_PORT |= (1 << LOCK_LED);
-	_delay_ms(70);
+	_delay_ms(100);
 	LED_PORT &= ~(1 << LOCK_LED);
 }
 

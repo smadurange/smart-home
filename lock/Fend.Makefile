@@ -12,7 +12,7 @@ CFLAGS += -Wall
 CFLAGS += -mmcu=$(MCU)
 CFLAGS += -DBAUD=57600
 CFLAGS += -DF_CPU=16000000UL
-CFLAGS += -DDEBUG=1
+CFLAGS += -DDEBUG=0
 CFLAGS += -DFPM_PWD=$(FPM_PWD)
 CFLAGS += -ffunction-sections -fdata-sections
 

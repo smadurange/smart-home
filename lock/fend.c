@@ -8,9 +8,9 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
+#include "fpm.h"
 #include "nrfm.h"
 #include "util.h"
-#include "uart.h"
 
 #define LOCK_PIN      PD2
 #define UNLOCK_PIN    PD3
@@ -65,20 +65,26 @@ int main(void)
 	char buf[WDLEN], key[WDLEN];
 
 	wdt_off();
-	uart_init();
 	led_init();
+	fpm_init();
 
 	init_rx();
 	init_btns();
 
 	radio_init(rxaddr);
-	radio_print_config();
 
 	sei();
 	radio_listen();
 
 	for (;;) {
 		if (!sync && (islock || isunlock)) {
+			if (isunlock) {
+				if (!fpm_match()) {
+					isunlock = 0;
+					continue;
+				}
+			}
+
 			xor(KEY, SYN, buf, WDLEN);
 			retries = 0;
 			do {
