@@ -15,13 +15,14 @@
 #define LOCK_PIN      PD2
 #define UNLOCK_PIN    PD3
 
-#define RX_PIN        PD7
-#define RX_DDR        DDRD
-#define RX_PORT       PORTD
-#define RX_PCIE       PCIE2
-#define RX_PCINT      PCINT23
-#define RX_PCMSK      PCMSK2
-#define RX_PCINTVEC   PCINT2_vect
+#define RX_IRQ_PIN    PC1
+#define RX_DDR        DDRC
+#define RX_PIN        PINC
+#define RX_ICR        PCICR 
+#define RX_IE         PCIE1
+#define RX_INT        PCINT9
+#define RX_MSK        PCMSK1
+#define RX_INTVEC     PCINT1_vect
 
 #define VCC_MIN       4000
 
@@ -47,10 +48,9 @@ static inline void wdt_off(void)
 
 static inline void init_rx(void)
 {
-	RX_DDR &= ~(1 << RX_PIN);
-	RX_PORT |= (1 << RX_PIN); 
-	PCICR |= (1 << RX_PCIE);
-	RX_PCMSK |= (1 << RX_PCINT);
+	RX_DDR &= ~(1 << RX_IRQ_PIN);
+	RX_ICR |= (1 << RX_IE);
+	RX_MSK |= (1 << RX_INT);
 }
 
 static inline void init_btns(void)
@@ -74,7 +74,7 @@ static inline void init_leds(void)
 
 int main(void)
 {
-	int i;
+	int i, retries;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
@@ -96,10 +96,17 @@ int main(void)
 	for (;;) {
 		if (!sync && (islock || isunlock)) {
 			xor(KEY, SYN, buf, WDLEN);
+			retries = 0;
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
+				retries++;
 				_delay_ms(50);
-			} while (!sync);
+			} while (!sync && retries < 40);
+			
+			if (!sync) {
+				islock = 0;
+				isunlock = 0;
+			}
 		}
 
 		if (rxd) {
@@ -137,9 +144,10 @@ int main(void)
 	return 0;
 }
 
-ISR(RX_PCINTVEC)
+ISR(RX_INTVEC)
 {
-	rxd = 1;
+	if (!(RX_PIN & (1 << RX_IRQ_PIN)))
+		rxd = 1;
 }
 
 ISR(INT0_vect)
