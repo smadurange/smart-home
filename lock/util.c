@@ -4,6 +4,12 @@
 
 #include "util.h"
 
+#define LOCK_LED      PC3
+#define UNLOCK_LED    PC4
+#define BATLOW_LED    PC5
+#define LED_DDR       DDRC
+#define LED_PORT      PORTC
+
 int is_btn_pressed(uint8_t pin, uint8_t btn)
 {
 	if (!((pin >> btn) & 0x01)) {
@@ -43,4 +49,41 @@ uint16_t getvcc(void)
 
 	ADCSRA &= ~(1 << ADEN);
 	return vcc;
+}
+
+void led_init(void) 
+{
+	LED_DDR |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
+	LED_DDR |= (1 << BATLOW_LED);
+
+	LED_PORT &= ~(1 << LOCK_LED);
+	LED_PORT &= ~(1 << UNLOCK_LED);
+	LED_PORT &= ~(1 << BATLOW_LED);
+}
+
+void led_locked(void)
+{
+	LED_PORT |= (1 << LOCK_LED);
+	_delay_ms(70);
+	LED_PORT &= ~(1 << LOCK_LED);
+	_delay_ms(70);
+	LED_PORT |= (1 << LOCK_LED);
+	_delay_ms(70);
+	LED_PORT &= ~(1 << LOCK_LED);
+}
+
+void led_unlocked(void)
+{
+	LED_PORT |= (1 << UNLOCK_LED);
+	_delay_ms(70);
+	LED_PORT &= ~(1 << UNLOCK_LED);
+	_delay_ms(70);
+	LED_PORT |= (1 << UNLOCK_LED);
+	_delay_ms(70);
+	LED_PORT &= ~(1 << UNLOCK_LED);
+}
+
+void led_bat(void)
+{
+	LED_PORT ^= (1 << BATLOW_LED);
 }

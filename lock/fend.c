@@ -26,12 +26,6 @@
 
 #define VCC_MIN       4000
 
-#define LOCK_LED      PC3
-#define UNLOCK_LED    PC4
-#define BATLOW_LED    PC5
-#define LED_DDR       DDRC
-#define LED_PORT      PORTC
-
 static volatile uint8_t rxd = 0;
 static volatile uint8_t sync = 0;
 static volatile uint8_t islock = 0;
@@ -62,16 +56,6 @@ static inline void init_btns(void)
 	EIMSK = (1 << INT0) | (1 << INT1);
 }
 
-static inline void init_leds(void) 
-{
-	LED_DDR |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
-	LED_DDR |= (1 << BATLOW_LED);
-
-	LED_PORT &= ~(1 << LOCK_LED);
-	LED_PORT &= ~(1 << UNLOCK_LED);
-	LED_PORT &= ~(1 << BATLOW_LED);
-}
-
 int main(void)
 {
 	int i, retries;
@@ -82,9 +66,9 @@ int main(void)
 
 	wdt_off();
 	uart_init();
+	led_init();
 
 	init_rx();
-	init_leds();
 	init_btns();
 
 	radio_init(rxaddr);
@@ -118,18 +102,21 @@ int main(void)
 				if (islock) {
 					islock = 0;
 					xor(key, LOCK, buf, WDLEN);
+					if (radio_sendto(txaddr, buf, WDLEN))
+						led_locked();
 				} else if (isunlock) {
 					isunlock = 0;
 					xor(key, UNLOCK, buf, WDLEN);
+					if (radio_sendto(txaddr, buf, WDLEN))
+						led_unlocked();
 				}
-				radio_sendto(txaddr, buf, WDLEN);
 			}
 		}
 
 		if (!sync) {
 			if (getvcc() < VCC_MIN) {
 				for (i = 0; i < 5; i++) {
-					LED_PORT ^= (1 << BATLOW_LED);
+					led_bat();
 					_delay_ms(100);
 				}
 			}

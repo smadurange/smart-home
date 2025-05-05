@@ -32,12 +32,6 @@
 
 #define VCC_MIN       4900
 
-#define LOCK_LED      PC3
-#define UNLOCK_LED    PC4
-#define BATLOW_LED    PC5
-#define LED_DDR       DDRC
-#define LED_PORT      PORTC
-
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',
 	'E', '1', 'o', '#', ')', '2', '5', 'q', ';', '.', 'I',
@@ -99,16 +93,6 @@ static inline void init_btns(void)
 	EIMSK = (1 << INT0) | (1 << INT1);
 }
 
-static inline void init_leds(void) 
-{
-	LED_DDR |= (1 << LOCK_LED) | (1 << UNLOCK_LED);
-	LED_DDR |= (1 << BATLOW_LED);
-
-	LED_PORT &= ~(1 << LOCK_LED);
-	LED_PORT &= ~(1 << UNLOCK_LED);
-	LED_PORT &= ~(1 << BATLOW_LED);
-}
-
 static inline void init_servo(void)
 {
 	ICR1 = PWM_TOP;
@@ -141,11 +125,11 @@ int main(void)
 
 	init_wdt();
 	init_rx();
-	init_leds();
 	init_btns();
 	init_servo();
 
 	uart_init();
+	led_init();
 	radio_init(rxaddr);
 	radio_print_config();
 
@@ -195,13 +179,7 @@ ISR(INT0_vect)
 {
 	if (is_btn_pressed(PIND, LOCK_PIN)) {
 		lock();
-		LED_PORT |= (1 << LOCK_LED);
-		_delay_ms(70);
-		LED_PORT &= ~(1 << LOCK_LED);
-		_delay_ms(70);
-		LED_PORT |= (1 << LOCK_LED);
-		_delay_ms(70);
-		LED_PORT &= ~(1 << LOCK_LED);
+		led_locked();
 	}
 }
 
@@ -209,18 +187,12 @@ ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN)) {
 		unlock();
-		LED_PORT |= (1 << UNLOCK_LED);
-		_delay_ms(70);
-		LED_PORT &= ~(1 << UNLOCK_LED);
-		_delay_ms(70);
-		LED_PORT |= (1 << UNLOCK_LED);
-		_delay_ms(70);
-		LED_PORT &= ~(1 << UNLOCK_LED);
+		led_unlocked();
 	}
 }
 
 ISR(WDT_vect)
 {
 	if (getvcc() < VCC_MIN)
-		LED_PORT ^= (1 << BATLOW_LED);
+		led_bat();
 }

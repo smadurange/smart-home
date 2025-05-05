@@ -16,4 +16,12 @@ void xor(const char *k, const char *s, char *d, uint8_t n);
 
 uint16_t getvcc(void);
 
+void led_init(void);
+
+void led_locked(void);
+
+void led_unlocked(void);
+
+void led_bat(void);
+
 #endif /* MY_UTIL_H */
