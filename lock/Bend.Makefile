@@ -1,6 +1,6 @@
 CC = avr-gcc
 MCU = atmega328p
-PORT = /dev/cuaU1
+PORT = /dev/cuaU0
 TARGET = bend
 
 SRC = bend.c uart.c nrfm.c util.c
