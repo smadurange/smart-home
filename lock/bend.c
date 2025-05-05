@@ -31,11 +31,11 @@
 
 #define VCC_MIN       4900
 
-#define LOCK_LED      PD5
-#define UNLOCK_LED    PD6
-#define BATLOW_LED    PD7
-#define LED_DDR       DDRD
-#define LED_PORT      PORTD
+#define LOCK_LED      PC3
+#define UNLOCK_LED    PC4
+#define BATLOW_LED    PC5
+#define LED_DDR       DDRC
+#define LED_PORT      PORTC
 
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',

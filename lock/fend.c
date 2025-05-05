@@ -10,6 +10,7 @@
 
 #include "nrfm.h"
 #include "util.h"
+#include "uart.h"
 
 #define LOCK_PIN      PD2
 #define UNLOCK_PIN    PD3
@@ -80,6 +81,8 @@ int main(void)
 	char buf[WDLEN], key[WDLEN];
 
 	wdt_off();
+	uart_init();
+
 	init_rx();
 	init_leds();
 	init_btns();
