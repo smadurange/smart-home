@@ -72,6 +72,7 @@ static inline void init_wdt(void)
 {
 	cli();
 	wdt_reset();
+
 	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
 	WDTCSR = (1 << WDP2) | (1 << WDP1);
 	WDTCSR |= (1 << WDIE);
@@ -160,6 +161,8 @@ int main(void)
 			}
 		} else {
 			radio_pwr_dwn();
+			if (getvcc() < VCC_MIN)
+				led_bat();
 			sleep_bod_disable();
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 			sleep_mode();
@@ -191,8 +194,5 @@ ISR(INT1_vect)
 	}
 }
 
-ISR(WDT_vect)
-{
-	if (getvcc() < VCC_MIN)
-		led_bat();
-}
+EMPTY_INTERRUPT(WDT_vect);
+
