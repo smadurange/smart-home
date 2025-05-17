@@ -1,7 +1,7 @@
 CC = avr-gcc
 MCU = atmega328p
 PORT = /dev/cuaU0
-TARGET = bend
+TARGET = server
 
 SRC = bend.c uart.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
@@ -41,6 +41,6 @@ upload: hex
 .PHONY: clean
 
 clean:
-	 rm *.o *.elf *.hex 
+	 rm -f *.o *.elf *.hex
 
 
