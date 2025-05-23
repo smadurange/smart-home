@@ -21,12 +21,12 @@
 #define LOCK_PIN      PD3
 #define UNLOCK_PIN    PD4
 
-#define RX_IRQ_PIN    PC1
+#define RX_IRQ_PIN    PC0
 #define RX_DDR        DDRC
 #define RX_PIN        PINC
 #define RX_ICR        PCICR 
 #define RX_IE         PCIE1
-#define RX_INT        PCINT9
+#define RX_INT        PCINT8
 #define RX_MSK        PCMSK1
 #define RX_INTVEC     PCINT1_vect
 

@@ -12,15 +12,16 @@
 #include "nrfm.h"
 #include "util.h"
 
-#define LOCK_PIN      PD2
-#define UNLOCK_PIN    PD3
+#define LOCK_PIN      PD3
+#define UNLOCK_PIN    PD2
+#define ENROLL_PIN    PD4
 
-#define RX_IRQ_PIN    PC1
+#define RX_IRQ_PIN    PC0
 #define RX_DDR        DDRC
 #define RX_PIN        PINC
 #define RX_ICR        PCICR 
 #define RX_IE         PCIE1
-#define RX_INT        PCINT9
+#define RX_INT        PCINT8
 #define RX_MSK        PCMSK1
 #define RX_INTVEC     PCINT1_vect
 
@@ -90,6 +91,7 @@ int main(void)
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
 				retries++;
+				led_bat();
 				_delay_ms(50);
 			} while (!sync && retries < 40);
 			
@@ -145,16 +147,22 @@ ISR(RX_INTVEC)
 
 ISR(INT0_vect)
 {
+	sync = 0;
+	isunlock = 1;
+}
+
+ISR(INT1_vect)
+{
 	if (is_btn_pressed(PIND, LOCK_PIN)) {
 		sync = 0;
 		islock = 1;
 	}
 }
 
-ISR(INT1_vect)
+ISR(PCINT2_vect)
 {
-	if (is_btn_pressed(PIND, UNLOCK_PIN)) {
-		sync = 0;
-		isunlock = 1;
+	if (is_btn_pressed(PIND, ENROLL_PIN)) {
+		// enroll
 	}
 }
+
