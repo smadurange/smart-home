@@ -18,8 +18,8 @@
 #define PWM_TOP       20000
 
 #define SERVO_PIN     PB1
-#define LOCK_PIN      PD2
-#define UNLOCK_PIN    PD3
+#define LOCK_PIN      PD3
+#define UNLOCK_PIN    PD4
 
 #define RX_IRQ_PIN    PC1
 #define RX_DDR        DDRC
@@ -30,7 +30,7 @@
 #define RX_MSK        PCMSK1
 #define RX_INTVEC     PCINT1_vect
 
-#define VCC_MIN       4900
+#define VCC_MIN       4700
 
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',
@@ -91,7 +91,10 @@ static inline void init_btns(void)
 	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN));
 
 	EICRA = 0b00000000;
-	EIMSK = (1 << INT0) | (1 << INT1);
+	EIMSK = (1 << INT1);
+
+	PCICR |= (1 << PCIE2);
+	PCMSK2 |= (1 << PCINT20);
 }
 
 static inline void init_servo(void)
@@ -178,7 +181,7 @@ ISR(RX_INTVEC)
 		rxd = 1;
 }
 
-ISR(INT0_vect)
+ISR(INT1_vect)
 {
 	if (is_btn_pressed(PIND, LOCK_PIN)) {
 		lock();
@@ -186,7 +189,7 @@ ISR(INT0_vect)
 	}
 }
 
-ISR(INT1_vect)
+ISR(PCINT2_vect)
 {
 	if (is_btn_pressed(PIND, UNLOCK_PIN)) {
 		unlock();

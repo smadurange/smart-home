@@ -3,7 +3,7 @@ MCU = atmega328p
 PORT = /dev/cuaU0
 TARGET = server
 
-SRC = bend.c uart.c nrfm.c util.c
+SRC = server.c uart.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
