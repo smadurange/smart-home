@@ -30,7 +30,7 @@
 #define RX_MSK        PCMSK1
 #define RX_INTVEC     PCINT1_vect
 
-#define VCC_MIN       4700
+#define VCC_MIN       4000
 
 static char tab[] = {
 	'0', '8', '3', '6', 'a', 'Z', '$', '4', 'v', 'R', '@',
