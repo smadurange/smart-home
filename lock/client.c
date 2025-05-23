@@ -91,7 +91,6 @@ int main(void)
 			do {
 				sync = radio_sendto(txaddr, buf, WDLEN);
 				retries++;
-				led_bat();
 				_delay_ms(50);
 			} while (!sync && retries < 40);
 			
