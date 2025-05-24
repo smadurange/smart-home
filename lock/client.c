@@ -50,11 +50,28 @@ static inline void init_rx(void)
 
 static inline void init_btns(void)
 {
-	DDRD &= ~((1 << LOCK_PIN) | (1 << UNLOCK_PIN));
-	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN));
+	DDRD &= ~((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | ENROLL_PIN);
+	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | ENROLL_PIN);
 
 	EICRA = 0b00000000;
 	EIMSK = (1 << INT0) | (1 << INT1);
+
+	PCICR |= (1 << PCIE2);
+	PCMSK2 |= (1 << PCINT20);
+}
+
+static inline void fpm_ok(void)
+{
+	fpm_led_on(BLUE);
+	_delay_ms(500);
+	fpm_led_off();
+}
+
+static inline void fpm_nok(void)
+{
+	fpm_led_on(RED);
+	_delay_ms(1000);
+	fpm_led_off();
 }
 
 int main(void)
@@ -85,8 +102,11 @@ int main(void)
 			if (isunlock) {
 				if (!fpm_match()) {
 					isunlock = 0;
+					fpm_nok();
 					continue;
 				}
+				else
+					fpm_ok();
 			}
 
 			xor(KEY, SYN, buf, WDLEN);
@@ -163,8 +183,17 @@ ISR(INT1_vect)
 
 ISR(PCINT2_vect)
 {
+	uint16_t id;
+
 	if (is_btn_pressed(PIND, ENROLL_PIN)) {
-		// enroll
+		id = fpm_match();
+		if (id == 1 || id == 2) {
+			fpm_ok();
+			_delay_ms(1000);
+			if (fpm_enroll())
+				fpm_ok();
+		} else
+			fpm_nok();
 	}
 }
 

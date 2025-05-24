@@ -293,7 +293,7 @@ uint8_t fpm_enroll(void)
 	return buf[0] == OK;
 }
 
-uint8_t fpm_match(void)
+uint16_t fpm_match(void)
 {
 	struct fpm_cfg cfg;
 	uint8_t buf[MAXPDLEN];
@@ -316,5 +316,9 @@ uint8_t fpm_match(void)
 	
 	send(buf, 6);
 	recv(buf);
-	return buf[0] == OK;
+
+	if (buf[0] != OK)
+		return 0;
+
+	return ((uint16_t)buf[1] << 8) | buf[2];
 }
