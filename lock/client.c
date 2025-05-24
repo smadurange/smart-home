@@ -67,7 +67,10 @@ int main(void)
 
 	wdt_off();
 	led_init();
+
 	fpm_init();
+	if (fpm_get_count() == 0)
+		fpm_enroll();
 
 	init_rx();
 	init_btns();
