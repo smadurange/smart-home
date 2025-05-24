@@ -74,7 +74,6 @@ static inline void init_wdt(void)
 
 	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
 	WDTCSR = (1 << WDE) | (1 << WDP2) | (1 << WDP1);
-	WDTCSR |= (1 << WDIE);
 }
 
 static inline void init_rx(void)
@@ -192,6 +191,4 @@ ISR(PCINT2_vect)
 		led_unlocked();
 	}
 }
-
-EMPTY_INTERRUPT(WDT_vect);
 
