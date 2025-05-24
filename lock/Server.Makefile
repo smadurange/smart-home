@@ -3,15 +3,13 @@ MCU = atmega328p
 PORT = /dev/cuaU0
 TARGET = server
 
-SRC = server.c uart.c nrfm.c util.c
+SRC = server.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
 CFLAGS += -Os
 CFLAGS += -Wall
 CFLAGS += -mmcu=$(MCU)
-CFLAGS += -DBAUD=115200
-CFLAGS += -DDEBUG=1
 CFLAGS += -DF_CPU=16000000UL
 CFLAGS += -ffunction-sections -fdata-sections
 

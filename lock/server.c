@@ -9,7 +9,6 @@
 #include <util/delay.h>
 
 #include "nrfm.h"
-#include "uart.h"
 #include "util.h"
 
 #define PWM_MIN       500
@@ -74,7 +73,7 @@ static inline void init_wdt(void)
 	wdt_reset();
 
 	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
-	WDTCSR = (1 << WDP2) | (1 << WDP1);
+	WDTCSR = (1 << WDE) | (1 << WDP2) | (1 << WDP1);
 	WDTCSR |= (1 << WDIE);
 }
 
@@ -132,10 +131,8 @@ int main(void)
 	init_btns();
 	init_servo();
 
-	uart_init();
 	led_init();
 	radio_init(rxaddr);
-	radio_print_config();
 
 	sei();
 	radio_listen();
@@ -169,7 +166,6 @@ int main(void)
 			sleep_bod_disable();
 			set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 			sleep_mode();
-			radio_listen();
 		}
 	}
 	return 0;

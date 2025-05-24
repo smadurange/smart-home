@@ -8,8 +8,6 @@
 
 void radio_init(const uint8_t rxaddr[ADDRLEN]);
 
-void radio_print_config(void);
-
 void radio_listen(void);
 
 void radio_pwr_dwn(void);

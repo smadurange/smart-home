@@ -6,7 +6,6 @@
 #include <util/delay.h>
 
 #include "nrfm.h"
-#include "uart.h"
 
 #define SPI_SS            PB2
 #define SPI_SCK           PB5
@@ -176,32 +175,6 @@ static inline uint8_t rx_pdlen(void)
 	return SPDR;
 }
 
-void radio_print_config(void)
-{
-#if DEBUG
-	char s[22];
-	uint8_t i, rv, addr[ADDRLEN];
-
-	uint8_t regs[] = { 
-		0x00, 0x01, 0x02, 0x03, 0x04, 
-		0x05, 0x06, 0x07, 0x11, 0x1C, 0x1D 
-	};
-
-	uart_write_line("NRF24L01 config:");
-
-	for (i = 0; i < LEN(regs); i++) {
-		rv = read_reg(regs[i]);
-		snprintf(s, LEN(s), "\t0x%02X: 0x%02X  %s%s", 
-		    regs[i], rv, bittab[rv >> 4], bittab[rv & 0x0F]);
-		uart_write_line(s);
-	}
-
-	read_reg_bulk(0x0B, addr, ADDRLEN);
-	snprintf(s, LEN(s), "\r\n\t0x0B: %d.%d.%d", addr[2], addr[1], addr[0]);
-	uart_write_line(s);
-#endif
-}
-
 void radio_init(const uint8_t rxaddr[ADDRLEN])
 {
 	SPI_DDR |= (1 << SPI_SS) | (1 << SPI_SCK) | (1 << SPI_MOSI);
@@ -259,16 +232,6 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 	setaddr(0x10, addr);
 	setaddr(0x0A, addr);
 
-#if DEBUG
-	char s[4];
-	uart_write("DEBUG: sending to ");
-	uart_write(itoa(addr[0], s, 10));
-	uart_write(".");
-	uart_write(itoa(addr[1], s, 10));
-	uart_write(".");
-	uart_write_line(itoa(addr[2], s, 10));
-#endif
-
 	imax = n < MAXPDLEN ? n : MAXPDLEN;
 
 	SPI_PORT &= ~(1 << SPI_SS);
@@ -293,16 +256,8 @@ uint8_t radio_sendto(const uint8_t addr[ADDRLEN], const char *msg, uint8_t n)
 		maxrt = rv & (1 << 4);
 	} while (txds == 0 && maxrt == 0);
 
-#if DEBUG
-	if (txds)
-		uart_write_line("DEBUG: packet sent");
-#endif
-	if (maxrt) {
+	if (maxrt)
 		flush_tx();
-#if DEBUG
-		uart_write_line("ERROR: sendto() failed: MAX_RT");
-#endif
-	}
 
 	// restore config, typically rx mode
 	write_reg(0x00, cfg);
@@ -320,24 +275,11 @@ uint8_t radio_recv(char *buf, uint8_t n)
 	pdlen = rx_pdlen();	
 	if (pdlen == 0) {
 		radio_flush_rx();
-#if DEBUG
-		uart_write_line("ERROR: PDLEN = 0, abort read");
-#endif
 		return 0;
 	}
 	
-#if DEBUG
-	char s[3];
-	itoa(pdlen, s, 10);
-	uart_write("DEBUG: PDLEN=");
-	uart_write_line(s);
-#endif
-
 	if (pdlen > MAXPDLEN) {
 		radio_flush_rx();
-#if DEBUG
-		uart_write_line("ERROR: PDLEN > MAXPDLEN, abort read");
-#endif
 		return 0;
 	}
 

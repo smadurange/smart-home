@@ -3,7 +3,7 @@ MCU = atmega328p
 PORT = /dev/cuaU0
 TARGET = client
 
-SRC = client.c fpm.c uart.c nrfm.c util.c
+SRC = client.c fpm.c nrfm.c util.c
 OBJ = $(SRC:.c=.o)
 
 CFLAGS = -std=gnu99
@@ -12,7 +12,6 @@ CFLAGS += -Wall
 CFLAGS += -mmcu=$(MCU)
 CFLAGS += -DBAUD=57600
 CFLAGS += -DF_CPU=16000000UL
-CFLAGS += -DDEBUG=0
 CFLAGS += -DFPM_PWD=$(FPM_PWD)
 CFLAGS += -ffunction-sections -fdata-sections
 
