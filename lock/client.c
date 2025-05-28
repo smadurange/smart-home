@@ -50,8 +50,8 @@ static inline void init_rx(void)
 
 static inline void init_btns(void)
 {
-	DDRD &= ~((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | ENROLL_PIN);
-	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | ENROLL_PIN);
+	DDRD &= ~((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | (1 << ENROLL_PIN));
+	PORTD |= ((1 << LOCK_PIN) | (1 << UNLOCK_PIN) | (1 << ENROLL_PIN));
 
 	EICRA = 0b00000000;
 	EIMSK = (1 << INT0) | (1 << INT1);
