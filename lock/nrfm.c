@@ -190,7 +190,7 @@ void radio_init(const uint8_t rxaddr[ADDRLEN])
 	write_reg(0x01, 0b00111111);  /* enable auto ack on all pipes */
 	write_reg(0x02, 0b00000011);  /* enable rx address on pipes 0 and 1 */
 	write_reg(0x03, 0b00000001);  /* set address width to 3 bytes */
-	write_reg(0x04, 0b00101111);  /* 750uS retransmission delay, 15 tries */
+	write_reg(0x04, 0b11111111);  /* 4000uS retransmission delay, 15 tries */
 	write_reg(0x05, 0b01110011);  /* use 2.515GHz channel */
 	write_reg(0x06, 0b00001110);  /* set data rate to 1Mbps */
 	write_reg(0x1D, 0b00000100);  /* enable dynamic payload length */
