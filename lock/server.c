@@ -73,7 +73,7 @@ static inline void init_wdt(void)
 	wdt_reset();
 
 	WDTCSR |= (1 << WDCE) | ( 1 << WDE); 
-	WDTCSR = (1 << WDE) | (1 << WDP2) | (1 << WDP1);
+	WDTCSR = (1 << WDE) | (1 << WDP1);    /* reset after 64ms */
 }
 
 static inline void init_rx(void)
@@ -137,9 +137,6 @@ int main(void)
 	radio_listen();
 
 	for (;;) {
-		if (!rxd)
-			_delay_ms(1);
-
 		if (rxd) {
 			radio_recv(buf, WDLEN);
 			rxd = 0;
