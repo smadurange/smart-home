@@ -70,7 +70,7 @@ static inline void fpm_ok(void)
 static inline void fpm_nok(void)
 {
 	fpm_led_on(RED);
-	_delay_ms(1000);
+	_delay_ms(500);
 	fpm_led_off();
 }
 
