@@ -76,7 +76,7 @@ static inline void fpm_nok(void)
 
 int main(void)
 {
-	int i;
+	int i, retries;
 	uint8_t rxaddr[ADDRLEN] = { 194, 178, 82 };
 	uint8_t txaddr[ADDRLEN] = { 194, 178, 83 };
 
@@ -110,7 +110,11 @@ int main(void)
 			}
 
 			xor(KEY, SYN, buf, WDLEN);
-			sync = radio_sendto(txaddr, buf, WDLEN);
+			retries = 0;
+			do {
+				sync = radio_sendto(txaddr, buf, WDLEN);
+				retries++;
+			} while (!sync && retries < 2);
 			
 			if (!sync) {
 				islock = 0;
