@@ -138,7 +138,7 @@ int main(void)
 
 	for (;;) {
 		if (!rxd)
-			_delay_ms(250);
+			_delay_ms(1);
 
 		if (rxd) {
 			radio_recv(buf, WDLEN);
