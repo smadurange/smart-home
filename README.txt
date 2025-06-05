@@ -22,3 +22,10 @@ Although I designed this around RFM to learn more about RFM, the architecture
 can be made more power-efficient if I toss the RFMs. I'm in the midst of making
 these changes to the system.
 
+To build and upload the client and server components, use the following
+commands. Change the KEY, SYN, LOCK and UNLOCK definitions for your system.
+
+  make -f Client.Makefile FPM_PWD={your_pwd_for_FPM} upload
+  make -f Server.Makefile upload
+
+
