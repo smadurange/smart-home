@@ -8,8 +8,8 @@ and environmental friendliness as part of the problem constraints. That means
 THE DOOR LOCK
 
 The door lock project aims to drive my door lock using a fingerprint sensor
-module (FPM). In its current version, the front of the door has FPM connected
-to an ATmega328P microcontroller. The back of the door has a servo connected to
+module (FPM). In its current version, the front of the door has an FPM
+connected to an ATmega328P MCU. The back of the door has a servo connected to
 another ATmega328P. Both modules have 2.4GHz NRF24L01+ RFMs connected to them.
 
 When the FPM authenticates a user, the MCU establishes a secure connection with
